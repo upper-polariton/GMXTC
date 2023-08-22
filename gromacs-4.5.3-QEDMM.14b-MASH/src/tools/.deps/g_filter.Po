@@ -1,0 +1,8 @@
+g_filter.o: g_filter.c /usr/include/stdc-predef.h ../../src/config.h \
+ ../../include/gmx_ana.h
+
+/usr/include/stdc-predef.h:
+
+../../src/config.h:
+
+../../include/gmx_ana.h:

@@ -1,0 +1,454 @@
+template.o: template.c /usr/include/stdc-predef.h gromacs/copyrite.h \
+ /usr/include/stdio.h /usr/include/features.h /usr/include/sys/cdefs.h \
+ /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h \
+ /usr/include/gnu/stubs-64.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.8.5/include/stddef.h \
+ /usr/include/bits/types.h /usr/include/bits/typesizes.h \
+ /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.8.5/include/stdarg.h \
+ /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
+ gromacs/types/simple.h ../../src/config.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.8.5/include/limits.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.8.5/include/syslimits.h \
+ /usr/include/limits.h /usr/include/bits/posix1_lim.h \
+ /usr/include/bits/local_lim.h /usr/include/linux/limits.h \
+ /usr/include/bits/posix2_lim.h gromacs/filenm.h gromacs/futil.h \
+ gromacs/typedefs.h /usr/include/sys/types.h /usr/include/time.h \
+ /usr/include/endian.h /usr/include/bits/endian.h \
+ /usr/include/bits/byteswap.h /usr/include/bits/byteswap-16.h \
+ /usr/include/sys/select.h /usr/include/bits/select.h \
+ /usr/include/bits/sigset.h /usr/include/bits/time.h \
+ /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h \
+ gromacs/sysstuff.h /usr/include/stdlib.h /usr/include/bits/waitflags.h \
+ /usr/include/bits/waitstatus.h /usr/include/alloca.h \
+ /usr/include/bits/stdlib-float.h /usr/include/errno.h \
+ /usr/include/bits/errno.h /usr/include/linux/errno.h \
+ /usr/include/asm/errno.h /usr/include/asm-generic/errno.h \
+ /usr/include/asm-generic/errno-base.h /usr/include/signal.h \
+ /usr/include/bits/signum.h /usr/include/bits/siginfo.h \
+ /usr/include/bits/sigaction.h /usr/include/bits/sigcontext.h \
+ /usr/include/bits/sigstack.h /usr/include/sys/ucontext.h \
+ /usr/include/bits/sigthread.h /usr/include/unistd.h \
+ /usr/include/bits/posix_opt.h /usr/include/bits/environments.h \
+ /usr/include/bits/confname.h /usr/include/getopt.h \
+ /usr/include/xlocale.h gromacs/types/enums.h gromacs/types/block.h \
+ gromacs/types/idef.h gromacs/types/simple.h gromacs/types/symtab.h \
+ gromacs/types/idef.h gromacs/types/atoms.h gromacs/types/trx.h \
+ gromacs/types/atoms.h gromacs/types/../molfile_plugin.h \
+ gromacs/types/../vmdplugin.h gromacs/types/../vmdio.h \
+ gromacs/types/../molfile_plugin.h gromacs/types/../types/simple.h \
+ gromacs/types/topology.h gromacs/types/block.h gromacs/types/symtab.h \
+ gromacs/types/energy.h gromacs/types/inputrec.h \
+ gromacs/types/../sysstuff.h gromacs/types/ishift.h gromacs/types/graph.h \
+ gromacs/types/nrnb.h gromacs/types/nblist.h gromacs/types/nsgrid.h \
+ gromacs/types/commrec.h /opt/intel/oneapi/mpi/2021.1.1/include/mpi.h \
+ /opt/intel/oneapi/mpi/2021.1.1/include/mpio.h \
+ /opt/intel/oneapi/mpi/2021.1.1/include/mpi.h gromacs/types/forcerec.h \
+ gromacs/types/ns.h gromacs/types/nsgrid.h gromacs/types/nblist.h \
+ gromacs/types/genborn.h gromacs/types/qmmmrec.h /usr/include/complex.h \
+ /usr/include/bits/mathdef.h /usr/include/bits/cmathcalls.h \
+ gromacs/types/fcdata.h gromacs/types/commrec.h gromacs/types/mdatom.h \
+ gromacs/types/pbc.h gromacs/types/ifunc.h gromacs/types/../typedefs.h \
+ gromacs/types/filenm.h gromacs/types/group.h gromacs/types/state.h \
+ gromacs/types/shellfc.h gromacs/types/constr.h gromacs/types/matrix.h \
+ gromacs/types/oenv.h gromacs/macros.h gromacs/pbc.h gromacs/smalloc.h \
+ gromacs/statutil.h gromacs/filenm.h gromacs/readinp.h gromacs/warninp.h \
+ gromacs/wman.h gromacs/pdbio.h gromacs/symtab.h gromacs/atomprop.h \
+ gromacs/index.h gromacs/oenv.h gromacs/gmxfio.h gromacs/xdrf.h \
+ /usr/include/rpc/rpc.h /usr/include/rpc/types.h /usr/include/sys/time.h \
+ /usr/include/sys/param.h /usr/include/bits/param.h \
+ /usr/include/linux/param.h /usr/include/asm/param.h \
+ /usr/include/asm-generic/param.h /usr/include/netinet/in.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.8.5/include/stdint.h \
+ /usr/include/stdint.h /usr/include/bits/wchar.h \
+ /usr/include/sys/socket.h /usr/include/sys/uio.h /usr/include/bits/uio.h \
+ /usr/include/bits/socket.h /usr/include/bits/socket_type.h \
+ /usr/include/bits/sockaddr.h /usr/include/asm/socket.h \
+ /usr/include/asm-generic/socket.h /usr/include/asm/sockios.h \
+ /usr/include/asm-generic/sockios.h /usr/include/bits/in.h \
+ /usr/include/rpc/xdr.h /usr/include/rpc/auth.h /usr/include/rpc/clnt.h \
+ /usr/include/sys/un.h /usr/include/string.h /usr/include/rpc/rpc_msg.h \
+ /usr/include/rpc/auth_unix.h /usr/include/rpc/auth_des.h \
+ /usr/include/rpc/svc.h /usr/include/rpc/svc_auth.h \
+ /usr/include/rpc/netdb.h gromacs/vec.h gromacs/maths.h \
+ /usr/include/math.h /usr/include/bits/huge_val.h \
+ /usr/include/bits/huge_valf.h /usr/include/bits/huge_vall.h \
+ /usr/include/bits/inf.h /usr/include/bits/nan.h \
+ /usr/include/bits/mathcalls.h gromacs/macros.h gromacs/gmx_fatal.h \
+ gromacs/mpelogging.h gromacs/physics.h gromacs/xvgr.h gromacs/viewit.h \
+ gromacs/nbsearch.h gromacs/indexutil.h gromacs/trajana.h \
+ gromacs/selection.h gromacs/position.h
+
+/usr/include/stdc-predef.h:
+
+gromacs/copyrite.h:
+
+/usr/include/stdio.h:
+
+/usr/include/features.h:
+
+/usr/include/sys/cdefs.h:
+
+/usr/include/bits/wordsize.h:
+
+/usr/include/gnu/stubs.h:
+
+/usr/include/gnu/stubs-64.h:
+
+/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include/stddef.h:
+
+/usr/include/bits/types.h:
+
+/usr/include/bits/typesizes.h:
+
+/usr/include/libio.h:
+
+/usr/include/_G_config.h:
+
+/usr/include/wchar.h:
+
+/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include/stdarg.h:
+
+/usr/include/bits/stdio_lim.h:
+
+/usr/include/bits/sys_errlist.h:
+
+gromacs/types/simple.h:
+
+../../src/config.h:
+
+/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include/limits.h:
+
+/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include/syslimits.h:
+
+/usr/include/limits.h:
+
+/usr/include/bits/posix1_lim.h:
+
+/usr/include/bits/local_lim.h:
+
+/usr/include/linux/limits.h:
+
+/usr/include/bits/posix2_lim.h:
+
+gromacs/filenm.h:
+
+gromacs/futil.h:
+
+gromacs/typedefs.h:
+
+/usr/include/sys/types.h:
+
+/usr/include/time.h:
+
+/usr/include/endian.h:
+
+/usr/include/bits/endian.h:
+
+/usr/include/bits/byteswap.h:
+
+/usr/include/bits/byteswap-16.h:
+
+/usr/include/sys/select.h:
+
+/usr/include/bits/select.h:
+
+/usr/include/bits/sigset.h:
+
+/usr/include/bits/time.h:
+
+/usr/include/sys/sysmacros.h:
+
+/usr/include/bits/pthreadtypes.h:
+
+gromacs/sysstuff.h:
+
+/usr/include/stdlib.h:
+
+/usr/include/bits/waitflags.h:
+
+/usr/include/bits/waitstatus.h:
+
+/usr/include/alloca.h:
+
+/usr/include/bits/stdlib-float.h:
+
+/usr/include/errno.h:
+
+/usr/include/bits/errno.h:
+
+/usr/include/linux/errno.h:
+
+/usr/include/asm/errno.h:
+
+/usr/include/asm-generic/errno.h:
+
+/usr/include/asm-generic/errno-base.h:
+
+/usr/include/signal.h:
+
+/usr/include/bits/signum.h:
+
+/usr/include/bits/siginfo.h:
+
+/usr/include/bits/sigaction.h:
+
+/usr/include/bits/sigcontext.h:
+
+/usr/include/bits/sigstack.h:
+
+/usr/include/sys/ucontext.h:
+
+/usr/include/bits/sigthread.h:
+
+/usr/include/unistd.h:
+
+/usr/include/bits/posix_opt.h:
+
+/usr/include/bits/environments.h:
+
+/usr/include/bits/confname.h:
+
+/usr/include/getopt.h:
+
+/usr/include/xlocale.h:
+
+gromacs/types/enums.h:
+
+gromacs/types/block.h:
+
+gromacs/types/idef.h:
+
+gromacs/types/simple.h:
+
+gromacs/types/symtab.h:
+
+gromacs/types/idef.h:
+
+gromacs/types/atoms.h:
+
+gromacs/types/trx.h:
+
+gromacs/types/atoms.h:
+
+gromacs/types/../molfile_plugin.h:
+
+gromacs/types/../vmdplugin.h:
+
+gromacs/types/../vmdio.h:
+
+gromacs/types/../molfile_plugin.h:
+
+gromacs/types/../types/simple.h:
+
+gromacs/types/topology.h:
+
+gromacs/types/block.h:
+
+gromacs/types/symtab.h:
+
+gromacs/types/energy.h:
+
+gromacs/types/inputrec.h:
+
+gromacs/types/../sysstuff.h:
+
+gromacs/types/ishift.h:
+
+gromacs/types/graph.h:
+
+gromacs/types/nrnb.h:
+
+gromacs/types/nblist.h:
+
+gromacs/types/nsgrid.h:
+
+gromacs/types/commrec.h:
+
+/opt/intel/oneapi/mpi/2021.1.1/include/mpi.h:
+
+/opt/intel/oneapi/mpi/2021.1.1/include/mpio.h:
+
+/opt/intel/oneapi/mpi/2021.1.1/include/mpi.h:
+
+gromacs/types/forcerec.h:
+
+gromacs/types/ns.h:
+
+gromacs/types/nsgrid.h:
+
+gromacs/types/nblist.h:
+
+gromacs/types/genborn.h:
+
+gromacs/types/qmmmrec.h:
+
+/usr/include/complex.h:
+
+/usr/include/bits/mathdef.h:
+
+/usr/include/bits/cmathcalls.h:
+
+gromacs/types/fcdata.h:
+
+gromacs/types/commrec.h:
+
+gromacs/types/mdatom.h:
+
+gromacs/types/pbc.h:
+
+gromacs/types/ifunc.h:
+
+gromacs/types/../typedefs.h:
+
+gromacs/types/filenm.h:
+
+gromacs/types/group.h:
+
+gromacs/types/state.h:
+
+gromacs/types/shellfc.h:
+
+gromacs/types/constr.h:
+
+gromacs/types/matrix.h:
+
+gromacs/types/oenv.h:
+
+gromacs/macros.h:
+
+gromacs/pbc.h:
+
+gromacs/smalloc.h:
+
+gromacs/statutil.h:
+
+gromacs/filenm.h:
+
+gromacs/readinp.h:
+
+gromacs/warninp.h:
+
+gromacs/wman.h:
+
+gromacs/pdbio.h:
+
+gromacs/symtab.h:
+
+gromacs/atomprop.h:
+
+gromacs/index.h:
+
+gromacs/oenv.h:
+
+gromacs/gmxfio.h:
+
+gromacs/xdrf.h:
+
+/usr/include/rpc/rpc.h:
+
+/usr/include/rpc/types.h:
+
+/usr/include/sys/time.h:
+
+/usr/include/sys/param.h:
+
+/usr/include/bits/param.h:
+
+/usr/include/linux/param.h:
+
+/usr/include/asm/param.h:
+
+/usr/include/asm-generic/param.h:
+
+/usr/include/netinet/in.h:
+
+/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include/stdint.h:
+
+/usr/include/stdint.h:
+
+/usr/include/bits/wchar.h:
+
+/usr/include/sys/socket.h:
+
+/usr/include/sys/uio.h:
+
+/usr/include/bits/uio.h:
+
+/usr/include/bits/socket.h:
+
+/usr/include/bits/socket_type.h:
+
+/usr/include/bits/sockaddr.h:
+
+/usr/include/asm/socket.h:
+
+/usr/include/asm-generic/socket.h:
+
+/usr/include/asm/sockios.h:
+
+/usr/include/asm-generic/sockios.h:
+
+/usr/include/bits/in.h:
+
+/usr/include/rpc/xdr.h:
+
+/usr/include/rpc/auth.h:
+
+/usr/include/rpc/clnt.h:
+
+/usr/include/sys/un.h:
+
+/usr/include/string.h:
+
+/usr/include/rpc/rpc_msg.h:
+
+/usr/include/rpc/auth_unix.h:
+
+/usr/include/rpc/auth_des.h:
+
+/usr/include/rpc/svc.h:
+
+/usr/include/rpc/svc_auth.h:
+
+/usr/include/rpc/netdb.h:
+
+gromacs/vec.h:
+
+gromacs/maths.h:
+
+/usr/include/math.h:
+
+/usr/include/bits/huge_val.h:
+
+/usr/include/bits/huge_valf.h:
+
+/usr/include/bits/huge_vall.h:
+
+/usr/include/bits/inf.h:
+
+/usr/include/bits/nan.h:
+
+/usr/include/bits/mathcalls.h:
+
+gromacs/macros.h:
+
+gromacs/gmx_fatal.h:
+
+gromacs/mpelogging.h:
+
+gromacs/physics.h:
+
+gromacs/xvgr.h:
+
+gromacs/viewit.h:
+
+gromacs/nbsearch.h:
+
+gromacs/indexutil.h:
+
+gromacs/trajana.h:
+
+gromacs/selection.h:
+
+gromacs/position.h:

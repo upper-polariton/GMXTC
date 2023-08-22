@@ -1,8 +1,0 @@
-g_rmsf.o: g_rmsf.c /usr/include/stdc-predef.h ../../src/config.h \
- ../../include/gmx_ana.h
-
-/usr/include/stdc-predef.h:
-
-../../src/config.h:
-
-../../include/gmx_ana.h:

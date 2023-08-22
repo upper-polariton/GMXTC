@@ -1,8 +1,0 @@
-g_select.o: g_select.c /usr/include/stdc-predef.h ../../src/config.h \
- ../../include/gmx_ana.h
-
-/usr/include/stdc-predef.h:
-
-../../src/config.h:
-
-../../include/gmx_ana.h:

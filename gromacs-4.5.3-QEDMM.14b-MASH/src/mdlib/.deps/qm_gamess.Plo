@@ -1,5 +1,0 @@
-qm_gamess.lo: qm_gamess.c /usr/include/stdc-predef.h ../../src/config.h
-
-/usr/include/stdc-predef.h:
-
-../../src/config.h:

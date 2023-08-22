@@ -1,8 +1,0 @@
-g_pme_error.o: g_pme_error.c /usr/include/stdc-predef.h \
- ../../src/config.h ../../include/gmx_ana.h
-
-/usr/include/stdc-predef.h:
-
-../../src/config.h:
-
-../../include/gmx_ana.h:

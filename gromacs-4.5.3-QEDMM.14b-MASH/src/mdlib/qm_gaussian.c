@@ -6118,11 +6118,8 @@ real call_gaussian_QED(t_commrec *cr,  t_forcerec *fr,
   free (couplings);
   free (send_couple_real);
   free (send_couple_imag);
-
   free(energies);
- 
   return(QMener);
-
 } /* call_gaussian_QED */
 
 

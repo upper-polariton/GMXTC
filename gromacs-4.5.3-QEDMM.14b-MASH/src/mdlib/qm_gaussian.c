@@ -3986,7 +3986,7 @@ if (doprop){
     p=qm->polariton;
     betasq = conj(eigvec[p*ndim+m])*eigvec[p*ndim+m];
     a_sump = 0.0+IMAG*0.0;
-    for (i=0;i<(qm->n_max-qm->min_n)+1;i++){
+    for (i=0;i<(qm->n_max-qm->n_min)+1;i++){
       a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*m*L_au/((double) nmol));
     }
     ab = conj(eigvec[p*ndim+m])*a_sump; //actually sum of alphas * beta_j

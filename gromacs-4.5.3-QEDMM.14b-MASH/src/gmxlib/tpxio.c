@@ -895,7 +895,7 @@ static void do_inputrec(t_fileio *fio, t_inputrec *ir,gmx_bool bRead,
       gmx_fio_do_real(fio,ir->n_index); /* refractive index */
       gmx_fio_do_real(fio,ir->L); /* cavity width */
       gmx_fio_do_int(fio,ir->n_max); /* maximum number of modes */
- 
+      gmx_fio_do_int(fio,ir->n_min); /* minimum number of modes */
       gmx_fio_do_int(fio,ir->SHmethod);
       gmx_fio_do_int(fio,ir->QEDrepresentation);
       gmx_fio_do_int(fio,ir->opts.ngQM);

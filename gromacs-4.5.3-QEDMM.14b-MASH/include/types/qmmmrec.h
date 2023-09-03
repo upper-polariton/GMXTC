@@ -101,6 +101,7 @@ double groundstate;
   rvec E;
   real    n_index; /* Refractive index */
   real    L; /* Cavity width */
+  int    n_min; /* -Maximum number of modes */
   int    n_max; /* Maximum number of modes */
 
   dplx  *eigvec; /* to keep previous vectors, needed for hopping

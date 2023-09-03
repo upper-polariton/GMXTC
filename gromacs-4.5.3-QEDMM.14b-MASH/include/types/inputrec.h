@@ -297,6 +297,7 @@ typedef struct {
   real    n_index; /* Refractive index */
   real    L; /* Cavity width */
   int     n_max; /* Maximum number of modes */
+  int     n_min; /* Minimum number of modes */
   int     polariton;
 } t_inputrec;
 

@@ -3659,7 +3659,7 @@ double do_hybrid_non_herm(t_commrec *cr,  t_forcerec *fr,
   /* decide which node does propagation and which node does diagonalization
    */
   if(MULTISIM(cr)){
-    ndim=cr->ms->nsim+qm->n_max+1;
+    ndim=cr->ms->nsim+(qm->n_max-qm->n_min)+1;
     m=cr->ms->sim;
     if(m==0){
       doprop=1;
@@ -3670,7 +3670,7 @@ double do_hybrid_non_herm(t_commrec *cr,  t_forcerec *fr,
     nmol=cr->ms->nsim;
   }
   else{
-    ndim=1+qm->n_max+1;
+    ndim=1+(qm->n_max-qm->n_min)+1;
     m=0;
     dodiag=1;
     doprop=1;
@@ -3717,33 +3717,33 @@ double do_hybrid_non_herm(t_commrec *cr,  t_forcerec *fr,
       /* interpolate the Hamiltonian 
        */
       for(i=0;i<ndim*ndim;i++){
-	ham[i]=matrix[i]+qm->matrix[i];
+        ham[i]=matrix[i]+qm->matrix[i];
       }
       /* Add the losses -i\gamma\hat{a}^\dagger\hat{a}
        * assuming these do not depend on R or t 
        * The factor 2 is handled in the expM_non_herm function 
        */
       for(i=nmol;i<ndim;i++){
-	/* hbar*decay rate 6.582119569*10^(\[Minus]16)/10^(-12) into AU
-	 */
-	ham[i*ndim+i]-=IMAG*(qm->QEDdecay)*0.0006582119569/27.2114;
+        /* hbar*decay rate 6.582119569*10^(\[Minus]16)/10^(-12) into AU
+         */
+        ham[i*ndim+i]-=IMAG*(qm->QEDdecay)*0.0006582119569/27.2114;
       }
       /* propagate the coefficients 
        */
       expM_non_herm(ndim,ham,expH, qm->dt);
       MtimesV_complex(ndim,expH,d,dtemp);
       for( i=0;i<ndim;i++){
-	d[i]=dtemp[i];
+        d[i]=dtemp[i];
       }
       for ( i = 0 ; i < ndim ; i++ ){	
-	qm->dreal[i] = creal(d[i]);
-	qm->dimag[i] = cimag(d[i]);
+        qm->dreal[i] = creal(d[i]);
+        qm->dimag[i] = cimag(d[i]);
       }
       /* some writing 
        */
       fprintf(stderr,"step %d: |D|^2: ",step);
       for(i=0;i<ndim;i++){
-	fprintf (stderr," %.5lf ",conj(d[i])*d[i]);    
+        fprintf (stderr," %.5lf ",conj(d[i])*d[i]);
       }
       fprintf(stderr,"\n");
     }
@@ -3772,8 +3772,8 @@ double do_hybrid_non_herm(t_commrec *cr,  t_forcerec *fr,
     if(dodiag){
       ctot=dtot=0.0;
       for(i=0;i<ndim;i++){
-	dtot  += qm->dreal[i]*qm->dreal[i]+ qm->dimag[i]*qm->dimag[i];
-	ctot  += qm->creal[i]*qm->creal[i]+ qm->cimag[i]*qm->cimag[i];
+        dtot  += qm->dreal[i]*qm->dreal[i]+ qm->dimag[i]*qm->dimag[i];
+        ctot  += qm->creal[i]*qm->creal[i]+ qm->cimag[i]*qm->cimag[i];
       }
       /* one of these should be 0. If that is
        * c, then we need to compute the d, otherwise we need to compute c.
@@ -3784,133 +3784,133 @@ double do_hybrid_non_herm(t_commrec *cr,  t_forcerec *fr,
 	 * first make the conjugate() of all 
 	 * elements, and then make the adjoint
 	 */
-	udagger[i]=eigvec_real[i]-IMAG*eigvec_imag[i];
+        udagger[i]=eigvec_real[i]-IMAG*eigvec_imag[i];
       }
       if(ctot>dtot){      
-	for(i=0;i<ndim;i++){
-	  c[i] = qm->creal[i]+ IMAG*qm->cimag[i];      
-	}
-	transposeM_complex(ndim,udagger,umatrix);
-	MtimesV_complex(ndim,umatrix,c,d);
-	for ( i = 0 ; i < ndim ; i++ ){	
-	  qm->dreal[i] = creal(d[i]);
-	  qm->dimag[i] = cimag(d[i]);
-	}
-	/* keep C */
+        for(i=0;i<ndim;i++){
+          c[i] = qm->creal[i]+ IMAG*qm->cimag[i];
+        }
+      transposeM_complex(ndim,udagger,umatrix);
+	  MtimesV_complex(ndim,umatrix,c,d);
+	  for ( i = 0 ; i < ndim ; i++ ){
+	    qm->dreal[i] = creal(d[i]);
+	    qm->dimag[i] = cimag(d[i]);
       }
-      /* the user has supplied d at t=0, we tranform those in the c(0)
-       */
-      else{
-	for(i=0;i<ndim;i++){
-	  d[i] = qm->dreal[i]+ IMAG*qm->dimag[i];      
-	}
-	MtimesV_complex(ndim,udagger,d,c);
-	for ( i = 0 ; i < ndim ; i++ ){	
-	  qm->creal[i] = creal(c[i]);
-	  qm->cimag[i] = cimag(c[i]);
-	}
-	/* keep D */
-      }     
-      /* some writing 
-       */
-      fprintf(stderr,"step %d: |D|^2: ",step);
-      for(i=0;i<ndim;i++){
-	fprintf (stderr," %.5lf ",
-      		 (qm->dreal[i])*(qm->dreal[i])+(qm->dimag[i])*(qm->dimag[i]) );    
-      }
-      fprintf(stderr,"\nstep %d: |C|^2: ",step);
-      for(i=0;i<ndim;i++){
-	fprintf (stderr," %.5lf ",
-      		 (qm->creal[i])*(qm->creal[i])+(qm->cimag[i])*(qm->cimag[i]) );    
-      }
-      fprintf(stderr,"\n");
+	  /* keep C */
     }
-    else{
-      /* reset all coefficients on the other nodes to 0, even if they 
-       * had them, because these will be communcicated from node "dodiag"
-       */
-      for(i=0;i<ndim;i++){
-	qm->dreal[i] = qm->dimag[i] = qm->creal[i] = qm->cimag[i]= 0.;
-      }
-    }
-    if(MULTISIM(cr)){
-      gmx_sumd_sim(ndim,qm->creal ,cr->ms);
-      gmx_sumd_sim(ndim,qm->cimag ,cr->ms);
-    }
-  }
-  /* communicate eigenvectors from node 0 and diabatic expansion coefficients from node1
-   */
-  if(MULTISIM(cr)){
-    /* One processor has the eigenvectors. Another one has the 
-     * time-dependent diabatic expansion coefficients.
-     * Eigenvectors, and coefficients are now communicates to the other 
-     * nodes, so that every one can compute the mean-field forces to the 
-     * other nodes, etc. We also communication the eigenvalues, 
-     * even we don't seem to need them. 
+    /* the user has supplied d at t=0, we tranform those in the c(0)
      */
-    gmx_sumd_sim(ndim*ndim,eigvec_real,cr->ms);
-    gmx_sumd_sim(ndim*ndim,eigvec_imag,cr->ms);
-    gmx_sumd_sim(ndim,eigval,cr->ms);
-    gmx_sumd_sim(ndim,qm->dreal ,cr->ms);
-    gmx_sumd_sim(ndim,qm->dimag ,cr->ms);  
+    else{
+	  for(i=0;i<ndim;i++){
+	    d[i] = qm->dreal[i]+ IMAG*qm->dimag[i];
+	  }
+	  MtimesV_complex(ndim,udagger,d,c);
+	  for ( i = 0 ; i < ndim ; i++ ){
+	    qm->creal[i] = creal(c[i]);
+	    qm->cimag[i] = cimag(c[i]);
+	  }
+	/* keep D */
+    }
+    /* some writing
+     */
+    fprintf(stderr,"step %d: |D|^2: ",step);
+    for(i=0;i<ndim;i++){
+	  fprintf (stderr," %.5lf ",
+      		 (qm->dreal[i])*(qm->dreal[i])+(qm->dimag[i])*(qm->dimag[i]) );    
+    }
+    fprintf(stderr,"\nstep %d: |C|^2: ",step);
+    for(i=0;i<ndim;i++){
+	  fprintf (stderr," %.5lf ",
+      		 (qm->creal[i])*(qm->creal[i])+(qm->cimag[i])*(qm->cimag[i]) );    
+    }
+    fprintf(stderr,"\n");
   }
-  for(i=0;i<ndim*ndim;i++){
-    eigvec[i]=eigvec_real[i]+IMAG*eigvec_imag[i];
-  }
-  
-  /* now all MPI tasks have the diabatic expansion coefficients, 
-   * the adiabatic eigenvectors
-   * and eigenvalues at the current timestep. We now transform the diabatic 
-   * coefficients that are propagated in time, to the 
-   * adiabatic coefficients and perform the Molecular Dynamics in 
-   * the adiabatic representation,
-   * using either Ehrenfest or surface hoping
-   */
-  
-  /* Step 1: Create the total adiabatic wavefunction
-   *
-   * we do this on the node that has the expH propagator in the diabatic basis.
-   */
-  if (doprop){
-    /* Eigenvectors are stored as array of rows, where rows are the vectors, 
-     * this is thus the transpose of the U. To make the complex transpose 
-     * we therefore need to take the complex conjute. We do that first. 
+  else{
+    /* reset all coefficients on the other nodes to 0, even if they
+     * had them, because these will be communcicated from node "dodiag"
      */
     for(i=0;i<ndim;i++){
-      for (j=0;j<ndim;j++){
-        /* hermitian adjoint of U
-         */
-        udagger[i*ndim+j]=eigvec_real[i*ndim+j]-IMAG*eigvec_imag[i*ndim+j];
-	/* transpose of U, i.e. eigenvectors are columns
-	 */
-        uold[i*ndim+j] = qm->eigvec[j*ndim+i];
-      }
-    }    
-    if(step){
-      for (i=0;i<ndim;i++){
-	d[i]=qm->dreal[i]+IMAG*qm->dimag[i];
-	c[i]=qm->creal[i]+IMAG*qm->cimag[i];
-      }
-      M_complextimesM_complex(ndim,udagger,expH,temp);
-      M_complextimesM_complex(ndim,temp,uold,expH);
-      MtimesV_complex(ndim,expH,c,ctemp);
-      for( i=0;i<ndim;i++){
-	c[i]=ctemp[i];
-      }
-      if (fr->qr->SHmethod == eSHmethodGranucci){
-	//qm->polariton = state[0] =
-	hopto[0]= compute_hopping_probability(step,qm,c,expH,ndim);
-      }
-      for ( i = 0 ; i < ndim ; i++ ){	
-	qm->creal[i] = creal(c[i]);
-	qm->cimag[i] = cimag(c[i]);
-      }
-      /* some writing 
+	  qm->dreal[i] = qm->dimag[i] = qm->creal[i] = qm->cimag[i]= 0.;
+    }
+  }
+  if(MULTISIM(cr)){
+    gmx_sumd_sim(ndim,qm->creal ,cr->ms);
+    gmx_sumd_sim(ndim,qm->cimag ,cr->ms);
+  }
+}
+/* communicate eigenvectors from node 0 and diabatic expansion coefficients from node1
+ */
+if(MULTISIM(cr)){
+  /* One processor has the eigenvectors. Another one has the
+   * time-dependent diabatic expansion coefficients.
+   * Eigenvectors, and coefficients are now communicates to the other
+   * nodes, so that every one can compute the mean-field forces to the
+   * other nodes, etc. We also communication the eigenvalues,
+   * even we don't seem to need them.
+   */
+  gmx_sumd_sim(ndim*ndim,eigvec_real,cr->ms);
+  gmx_sumd_sim(ndim*ndim,eigvec_imag,cr->ms);
+  gmx_sumd_sim(ndim,eigval,cr->ms);
+  gmx_sumd_sim(ndim,qm->dreal ,cr->ms);
+  gmx_sumd_sim(ndim,qm->dimag ,cr->ms);
+}
+for(i=0;i<ndim*ndim;i++){
+  eigvec[i]=eigvec_real[i]+IMAG*eigvec_imag[i];
+}
+  
+/* now all MPI tasks have the diabatic expansion coefficients,
+ * the adiabatic eigenvectors
+ * and eigenvalues at the current timestep. We now transform the diabatic
+ * coefficients that are propagated in time, to the
+ * adiabatic coefficients and perform the Molecular Dynamics in
+ * the adiabatic representation,
+ * using either Ehrenfest or surface hoping
+ */
+ 
+/* Step 1: Create the total adiabatic wavefunction
+ *
+ * we do this on the node that has the expH propagator in the diabatic basis.
+ */
+if (doprop){
+  /* Eigenvectors are stored as array of rows, where rows are the vectors,
+   * this is thus the transpose of the U. To make the complex transpose
+   * we therefore need to take the complex conjute. We do that first.
+   */
+  for(i=0;i<ndim;i++){
+    for (j=0;j<ndim;j++){
+      /* hermitian adjoint of U
        */
-      fprintf(stderr,"step %d: |C|^2: ",step);
-      for(i=0;i<ndim;i++){
-	fprintf (stderr," %.5lf ",conj(c[i])*c[i]);    
-      }
+      udagger[i*ndim+j]=eigvec_real[i*ndim+j]-IMAG*eigvec_imag[i*ndim+j];
+      /* transpose of U, i.e. eigenvectors are columns
+	   */
+      uold[i*ndim+j] = qm->eigvec[j*ndim+i];
+    }
+  }
+  if(step){
+    for (i=0;i<ndim;i++){
+	  d[i]=qm->dreal[i]+IMAG*qm->dimag[i];
+	  c[i]=qm->creal[i]+IMAG*qm->cimag[i];
+    }
+    M_complextimesM_complex(ndim,udagger,expH,temp);
+    M_complextimesM_complex(ndim,temp,uold,expH);
+    MtimesV_complex(ndim,expH,c,ctemp);
+    for( i=0;i<ndim;i++){
+	  c[i]=ctemp[i];
+    }
+    if (fr->qr->SHmethod == eSHmethodGranucci){
+	  //qm->polariton = state[0] =
+	  hopto[0]= compute_hopping_probability(step,qm,c,expH,ndim);
+    }
+    for ( i = 0 ; i < ndim ; i++ ){
+      qm->creal[i] = creal(c[i]);
+	  qm->cimag[i] = cimag(c[i]);
+    }
+    /* some writing
+    */
+    fprintf(stderr,"step %d: |C|^2: ",step);
+    for(i=0;i<ndim;i++){
+	    fprintf (stderr," %.5lf ",conj(c[i])*c[i]);
+    }
       fprintf(stderr,"\n");
     }
   }
@@ -3986,41 +3986,39 @@ double do_hybrid_non_herm(t_commrec *cr,  t_forcerec *fr,
     p=qm->polariton;
     betasq = conj(eigvec[p*ndim+m])*eigvec[p*ndim+m];
     a_sump = 0.0+IMAG*0.0;
-    for (i=0;i<(qm->n_max)+1;i++){
-      a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
+    for (i=0;i<(qm->n_max-qm->min_n)+1;i++){
+      a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*m*L_au/((double) nmol));
     }
     ab = conj(eigvec[p*ndim+m])*a_sump; //actually sum of alphas * beta_j
     ab += conj(a_sump)*eigvec[p*ndim+m];
     for(i=0;i<qm->nrQMatoms;i++){
       for(j=0;j<DIM;j++){
-	/* diagonal term 
-	 */
-	fij =(betasq*QMgrad_S1[i][j]+(1-betasq)*QMgrad_S0[i][j]);
-	/* off-diagonal term 
-	 */
-	fij-= ab*tdmX[i][j]*u[0];
-	fij-= ab*tdmY[i][j]*u[1];
-	fij-= ab*tdmZ[i][j]*u[2];
-	fij*=HARTREE_BOHR2MD;
-	
-	f[i][j]      += creal(fij);
-	fshift[i][j] += creal(fij);
+        /* diagonal term
+         */
+        fij =(betasq*QMgrad_S1[i][j]+(1-betasq)*QMgrad_S0[i][j]);
+        /* off-diagonal term
+         */
+        fij-= ab*tdmX[i][j]*u[0];
+        fij-= ab*tdmY[i][j]*u[1];
+        fij-= ab*tdmZ[i][j]*u[2];
+        fij*=HARTREE_BOHR2MD;
+        f[i][j]      += creal(fij);
+        fshift[i][j] += creal(fij);
       }
     }
     for(i=0;i<mm->nrMMatoms;i++){
       for(j=0;j<DIM;j++){
-	/* diagonal term 
-	 */
-	fij =(betasq*MMgrad_S1[i][j]+(1-betasq)*MMgrad_S0[i][j]);
-	/* off-diagonal term 
-	 */
+        /* diagonal term
+         */
+        fij =(betasq*MMgrad_S1[i][j]+(1-betasq)*MMgrad_S0[i][j]);
+        /* off-diagonal term
+         */
         fij-= ab*tdmXMM[i][j]*u[0];
         fij-= ab*tdmYMM[i][j]*u[1];
         fij-= ab*tdmZMM[i][j]*u[2];
-	fij*=HARTREE_BOHR2MD;
-	
-	f[i+qm->nrQMatoms][j]      += creal(fij);
-	fshift[i+qm->nrQMatoms][j] += creal(fij);
+        fij*=HARTREE_BOHR2MD;
+        f[i+qm->nrQMatoms][j]      += creal(fij);
+        fshift[i+qm->nrQMatoms][j] += creal(fij);
       }
     }
     QMener = eigval[p]*HARTREE2KJ*AVOGADRO;
@@ -4039,8 +4037,8 @@ double do_hybrid_non_herm(t_commrec *cr,  t_forcerec *fr,
       csq = conj(qm->creal[p]+IMAG*qm->cimag[p])*(qm->creal[p]+IMAG*qm->cimag[p]);
       betasq = conj(eigvec[p*ndim+m])*eigvec[p*ndim+m];
       a_sump = 0.0+IMAG*0.0;
-      for (i=0;i<(qm->n_max)+1;i++){
-	a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
+      for (i=0;i<(qm->n_max-qm->n_min)+1;i++){
+        a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*m*L_au/((double) nmol));
       }
       ab = conj(eigvec[p*ndim+m])*a_sump; //actually sum of alphas * beta_j
       ab += conj(a_sump)*eigvec[p*ndim+m]; // ADDED GG, this accounts for the 3rd and 4th term together in equation 13.
@@ -4048,60 +4046,60 @@ double do_hybrid_non_herm(t_commrec *cr,  t_forcerec *fr,
        */
       QMener += csq*eigval[p]*HARTREE2KJ*AVOGADRO/totpop;
       for(i=0;i<qm->nrQMatoms;i++){
-	for(j=0;j<DIM;j++){
-	  /* diagonal term 
-	   */
-	  fij =(betasq*QMgrad_S1[i][j]+(1-betasq)*QMgrad_S0[i][j]);
-	  /* off-diagonal term, Because coeficients are real: ab = ba
-	   */
-	  fij-= ab*tdmX[i][j]*u[0];
-	  fij-= ab*tdmY[i][j]*u[1];
-	  fij-= ab*tdmZ[i][j]*u[2];
-	  fij*=HARTREE_BOHR2MD*csq/totpop;
-	  f[i][j]      += creal(fij);
-	  fshift[i][j] += creal(fij);
+        for(j=0;j<DIM;j++){
+          /* diagonal term
+           */
+          fij =(betasq*QMgrad_S1[i][j]+(1-betasq)*QMgrad_S0[i][j]);
+          /* off-diagonal term, Because coeficients are real: ab = ba
+           */
+          fij-= ab*tdmX[i][j]*u[0];
+          fij-= ab*tdmY[i][j]*u[1];
+          fij-= ab*tdmZ[i][j]*u[2];
+          fij*=HARTREE_BOHR2MD*csq/totpop;
+          f[i][j]      += creal(fij);
+          fshift[i][j] += creal(fij);
         }
       }
       for(i=0;i<mm->nrMMatoms;i++){
-	for(j=0;j<DIM;j++){
-	  /* diagonal terms 
-	   */
-	  fij =(betasq*MMgrad_S1[i][j]+(1-betasq)*MMgrad_S0[i][j]);
-	  /* off-diagonal term 
-	   */
-	  fij-= ab*tdmXMM[i][j]*u[0];
-	  fij-= ab*tdmYMM[i][j]*u[1];
-	  fij-= ab*tdmZMM[i][j]*u[2];
-	  fij*=HARTREE_BOHR2MD*csq/totpop;          
-	  f[i+qm->nrQMatoms][j]      += creal(fij);
-	  fshift[i+qm->nrQMatoms][j] += creal(fij);
+        for(j=0;j<DIM;j++){
+          /* diagonal terms
+           */
+          fij =(betasq*MMgrad_S1[i][j]+(1-betasq)*MMgrad_S0[i][j]);
+          /* off-diagonal term
+           */
+          fij-= ab*tdmXMM[i][j]*u[0];
+          fij-= ab*tdmYMM[i][j]*u[1];
+          fij-= ab*tdmZMM[i][j]*u[2];
+          fij*=HARTREE_BOHR2MD*csq/totpop;
+          f[i+qm->nrQMatoms][j]      += creal(fij);
+          fshift[i+qm->nrQMatoms][j] += creal(fij);
         }
       }    
       /* now off-diagonals 
        */
       for (q=p+1;q<ndim;q++){
-	/* normalize 
-	 */
-	cpcq = conj(qm->creal[p]+IMAG*(qm->cimag[p]))*(qm->creal[q]+IMAG*(qm->cimag[q]));
-	betasq = conj(eigvec[p*ndim+m])*eigvec[q*ndim+m];
+	    /* normalize
+	     */
+        cpcq = conj(qm->creal[p]+IMAG*(qm->cimag[p]))*(qm->creal[q]+IMAG*(qm->cimag[q]));
+        betasq = conj(eigvec[p*ndim+m])*eigvec[q*ndim+m];
         bpaq = conj(a_sum)*eigvec[q*ndim+m];
-	a_sumq = 0.0+IMAG*0.0;
+        a_sumq = 0.0+IMAG*0.0;
         for (i=0;i<(qm->n_max)+1;i++){
-	  a_sumq += eigvec[q*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
-	}
+          a_sumq += eigvec[q*ndim+nmol+i]*sqrt(cavity_dispersion(i+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*m*L_au/((double) nmol));
+        }
         bpaq = conj(eigvec[p*ndim+m])*a_sumq;
         apbq = conj(a_sump)*eigvec[q*ndim+m];
         bqap = conj(eigvec[q*ndim+m])*a_sump; /* conj(apbq) */
         aqbp = conj(a_sumq)*eigvec[p*ndim+m]; /* conj(bpaq) */
-	for(i=0;i<qm->nrQMatoms;i++){
-	  for(j=0;j<DIM;j++){
-	    /* diagonal term
-	     */
+        for(i=0;i<qm->nrQMatoms;i++){
+          for(j=0;j<DIM;j++){
+            /* diagonal term
+             */
             fij=0;
-	    fij = cpcq*betasq*(QMgrad_S1[i][j]-QMgrad_S0[i][j]);
+	        fij = cpcq*betasq*(QMgrad_S1[i][j]-QMgrad_S0[i][j]);
             fij+= conj(cpcq)*conj(betasq)*(QMgrad_S1[i][j]-QMgrad_S0[i][j]);
-	    /* off-diagonal term 
-	     */
+	        /* off-diagonal term
+	         */
             fij-= cpcq*(bpaq+apbq)*tdmX[i][j]*u[0];
             fij-= cpcq*(bpaq+apbq)*tdmY[i][j]*u[1];
             fij-= cpcq*(bpaq+apbq)*tdmZ[i][j]*u[2];
@@ -4109,28 +4107,28 @@ double do_hybrid_non_herm(t_commrec *cr,  t_forcerec *fr,
             fij-= conj(cpcq)*(bqap+aqbp)*tdmY[i][j]*u[1];
             fij-= conj(cpcq)*(bqap+aqbp)*tdmZ[i][j]*u[2];
             fij*=HARTREE_BOHR2MD/totpop;
-	    f[i][j]      += creal(fij);
+	        f[i][j]      += creal(fij);
             fshift[i][j] += creal(fij);
-	  }
+	      }
         }
-	for(i=0;i<mm->nrMMatoms;i++){
-	  for(j=0;j<DIM;j++){
-	    /* diagonal term 
-	     */
+        for(i=0;i<mm->nrMMatoms;i++){
+          for(j=0;j<DIM;j++){
+            /* diagonal term
+             */
             fij = cpcq*betasq*(MMgrad_S1[i][j]-MMgrad_S0[i][j]);
             fij+= conj(cpcq)*conj(betasq)*(MMgrad_S1[i][j]-MMgrad_S0[i][j]);
-	    /* off-diagonal term 
-	     */
+            /* off-diagonal term
+             */
             fij-= cpcq*(bpaq+apbq)*tdmXMM[i][j]*u[0];
             fij-= cpcq*(bpaq+apbq)*tdmYMM[i][j]*u[1];
             fij-= cpcq*(bpaq+apbq)*tdmZMM[i][j]*u[2];
             fij-= conj(cpcq)*(bqap+aqbp)*tdmXMM[i][j]*u[0];
             fij-= conj(cpcq)*(bqap+aqbp)*tdmYMM[i][j]*u[1];
             fij-= conj(cpcq)*(bqap+aqbp)*tdmZMM[i][j]*u[2];
-	    fij*=HARTREE_BOHR2MD/totpop;
+            fij*=HARTREE_BOHR2MD/totpop;
             f[i+qm->nrQMatoms][j]      += creal(fij);
             fshift[i+qm->nrQMatoms][j] += creal(fij);
-	  }
+          }
         }
       }
     }
@@ -4191,13 +4189,13 @@ double do_hybrid_non_herm(t_commrec *cr,  t_forcerec *fr,
      */
     if (doprop){ 
       for(i=0;i<ndim;i++){
-	c[i] = qm->creal[i]+ IMAG*qm->cimag[i];
+        c[i] = qm->creal[i]+ IMAG*qm->cimag[i];
       }
       transposeM_complex(ndim,udagger,umatrix);
       MtimesV_complex(ndim,umatrix,c,d);
       for(i=0;i<ndim;i++){
-	qm->dreal[i] = creal(d[i]);
-	qm->dimag[i] = cimag(d[i]);
+        qm->dreal[i] = creal(d[i]);
+        qm->dimag[i] = cimag(d[i]);
       }
     }
     
@@ -4205,11 +4203,10 @@ double do_hybrid_non_herm(t_commrec *cr,  t_forcerec *fr,
       /* set elements to zero and sum them up later
        */
       for(i=0;i<ndim;i++){
-	qm->dreal[i] = 0;
-	qm->dimag[i] = 0;
-	
-	qm->dreal[i] = 0;
-	qm->dimag[i] = 0;
+        qm->dreal[i] = 0;
+        qm->dimag[i] = 0;
+        qm->dreal[i] = 0;
+        qm->dimag[i] = 0;
       }
     } 
     if(MULTISIM(cr)){
@@ -4282,7 +4279,7 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
   snew(state,1);
 
   if(MULTISIM(cr)){
-    ndim=cr->ms->nsim+qm->n_max+1;
+    ndim=cr->ms->nsim+(qm->n_max-qm->n_min)+1;
     m=cr->ms->sim;
     if(m==0){
       doprop=1;
@@ -4293,7 +4290,7 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
     nmol=cr->ms->nsim;
   }
   else{
-    ndim=1+qm->n_max+1;
+    ndim=1+(qm->n_max-qm->n_min)+1;
     m=0;
     dodiag=1;
     doprop=1;
@@ -4336,29 +4333,29 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
   if(doprop){
     if(step){
       for (i=0;i<ndim;i++){
-	d[i]=qm->dreal[i]+IMAG*qm->dimag[i];
+        d[i]=qm->dreal[i]+IMAG*qm->dimag[i];
       }
       /* interpolate the Hamiltonian. The factor 2 is handled in expM_complex2
        */
       for(i=0;i<ndim*ndim;i++){
-	ham[i]=matrix[i]+qm->matrix[i];
+        ham[i]=matrix[i]+qm->matrix[i];
       }
       /* propagate the coefficients 
        */
       expM_complex2(ndim,ham,expH, qm->dt);
       MtimesV_complex(ndim,expH,d,dtemp);
       for( i=0;i<ndim;i++){
-	d[i]=dtemp[i];
+        d[i]=dtemp[i];
       }
       for ( i = 0 ; i < ndim ; i++ ){	
-	qm->dreal[i] = creal(d[i]);
-	qm->dimag[i] = cimag(d[i]);
+        qm->dreal[i] = creal(d[i]);
+        qm->dimag[i] = cimag(d[i]);
       }
       /* some writing 
        */
       fprintf(stderr,"step %d: |D|^2: ",step);
       for(i=0;i<ndim;i++){
-	fprintf (stderr," %.5lf ",conj(d[i])*d[i]);    
+        fprintf (stderr," %.5lf ",conj(d[i])*d[i]);
       }
       fprintf(stderr,"\n");
     }
@@ -4388,56 +4385,56 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
     if(dodiag){
       ctot=dtot=0.0;
       for(i=0;i<ndim;i++){
-	dtot  += qm->dreal[i]*qm->dreal[i]+ qm->dimag[i]*qm->dimag[i];
-	ctot  += qm->creal[i]*qm->creal[i]+ qm->cimag[i]*qm->cimag[i];
+        dtot  += qm->dreal[i]*qm->dreal[i]+ qm->dimag[i]*qm->dimag[i];
+        ctot  += qm->creal[i]*qm->creal[i]+ qm->cimag[i]*qm->cimag[i];
       }
       /* one of these should be 0. If that is
        * c, then we need to compute the d, otherwise we need to compute c.
        */
       for (i=0;i<ndim*ndim;i++){
-	/* hermitian adjoint of U. Because the matrix is stored in row 
-	 * format we need to transpose it. We do that in two steps:
-	 * first make the conjugate() of all 
-	 * elements, and then make the adjoint
-	 */
-	udagger[i]=eigvec_real[i]-IMAG*eigvec_imag[i];
+        /* hermitian adjoint of U. Because the matrix is stored in row
+         * format we need to transpose it. We do that in two steps:
+         * first make the conjugate() of all
+         * elements, and then make the adjoint
+         */
+        udagger[i]=eigvec_real[i]-IMAG*eigvec_imag[i];
       }
       if(ctot>dtot){      
-	for(i=0;i<ndim;i++){
-	  c[i] = qm->creal[i]+ IMAG*qm->cimag[i];      
-	}
-	transposeM_complex(ndim,udagger,umatrix);
-	MtimesV_complex(ndim,umatrix,c,d);
-	for ( i = 0 ; i < ndim ; i++ ){	
-	  qm->dreal[i] = creal(d[i]);
-	  qm->dimag[i] = cimag(d[i]);
-	}
-	/* keep C */
+        for(i=0;i<ndim;i++){
+          c[i] = qm->creal[i]+ IMAG*qm->cimag[i];
+        }
+        transposeM_complex(ndim,udagger,umatrix);
+        MtimesV_complex(ndim,umatrix,c,d);
+        for ( i = 0 ; i < ndim ; i++ ){
+          qm->dreal[i] = creal(d[i]);
+          qm->dimag[i] = cimag(d[i]);
+        }
+        /* keep C */
       }
       /* the user has supplied d at t=0, we tranform those in the c(0)
        */
       else{
-	for(i=0;i<ndim;i++){
-	  d[i] = qm->dreal[i]+ IMAG*qm->dimag[i];      
-	}
-	MtimesV_complex(ndim,udagger,d,c);
-	for ( i = 0 ; i < ndim ; i++ ){	
-	  qm->creal[i] = creal(c[i]);
-	  qm->cimag[i] = cimag(c[i]);
-	}
-	/* keep D */
+        for(i=0;i<ndim;i++){
+         md[i] = qm->dreal[i]+ IMAG*qm->dimag[i];
+        }
+        MtimesV_complex(ndim,udagger,d,c);
+        for ( i = 0 ; i < ndim ; i++ ){
+          qm->creal[i] = creal(c[i]);
+          qm->cimag[i] = cimag(c[i]);
+        }
+        /* keep D */
       }     
       /* some writing 
        */
       fprintf(stderr,"step %d: |D|^2: ",step);
       for(i=0;i<ndim;i++){
-	fprintf (stderr," %.5lf ",
-      		 (qm->dreal[i])*(qm->dreal[i])+(qm->dimag[i])*(qm->dimag[i]) );    
+        fprintf (stderr," %.5lf ",
+                 (qm->dreal[i])*(qm->dreal[i])+(qm->dimag[i])*(qm->dimag[i]) );
       }
       fprintf(stderr,"\nstep %d: |C|^2: ",step);
       for(i=0;i<ndim;i++){
-	fprintf (stderr," %.5lf ",
-      		 (qm->creal[i])*(qm->creal[i])+(qm->cimag[i])*(qm->cimag[i]) );    
+        fprintf (stderr," %.5lf ",
+          (qm->creal[i])*(qm->creal[i])+(qm->cimag[i])*(qm->cimag[i]) );
       }
       fprintf(stderr,"\n");
     }
@@ -4446,7 +4443,7 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
        * had them, because these will be communcicated from node "dodiag"
        */
       for(i=0;i<ndim;i++){
-	qm->dreal[i] = qm->dimag[i] = qm->creal[i] = qm->cimag[i]= 0.;
+        qm->dreal[i] = qm->dimag[i] = qm->creal[i] = qm->cimag[i]= 0.;
       }
     }
     if(MULTISIM(cr)){
@@ -4496,35 +4493,35 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
         /* hermitian adjoint of U
          */
         udagger[i*ndim+j]=eigvec_real[i*ndim+j]-IMAG*eigvec_imag[i*ndim+j];
-	/* transpose of U, i.e. eigenvectors are columns
-	 */
+        /* transpose of U, i.e. eigenvectors are columns
+         */
         uold[i*ndim+j] = qm->eigvec[j*ndim+i];
       }
     }   
     if(step){
       for (i=0;i<ndim;i++){
-	d[i]=qm->dreal[i]+IMAG*qm->dimag[i];
-	c[i]=qm->creal[i]+IMAG*qm->cimag[i];
+        d[i]=qm->dreal[i]+IMAG*qm->dimag[i];
+        c[i]=qm->creal[i]+IMAG*qm->cimag[i];
       }
       M_complextimesM_complex(ndim,udagger,expH,temp);
       M_complextimesM_complex(ndim,temp,uold,expH);
       MtimesV_complex(ndim,expH,c,ctemp);
       for( i=0;i<ndim;i++){
-	c[i]=ctemp[i];
+        c[i]=ctemp[i];
       }
       if (fr->qr->SHmethod == eSHmethodGranucci){
-	//qm->polariton = state[0] =
-	hopto[0]= compute_hopping_probability(step,qm,c,expH,ndim);
+          //qm->polariton = state[0] =
+        hopto[0]= compute_hopping_probability(step,qm,c,expH,ndim);
       }
       for ( i = 0 ; i < ndim ; i++ ){	
-	qm->creal[i] = creal(c[i]);
-	qm->cimag[i] = cimag(c[i]);
+        qm->creal[i] = creal(c[i]);
+        qm->cimag[i] = cimag(c[i]);
       }
       /* some writing 
        */
       fprintf(stderr,"step %d: |C|^2: ",step);
       for(i=0;i<ndim;i++){
-	fprintf (stderr," %.5lf ",conj(c[i])*c[i]);    
+        fprintf (stderr," %.5lf ",conj(c[i])*c[i]);
       }
       fprintf(stderr,"\n");
     }
@@ -4568,10 +4565,9 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
     snew(nacQM,qm->nrQMatoms);
     snew(nacMM,mm->nrMMatoms);
     get_NAC(ndim,nmol,eigvec,eigval,tdmX,tdmY,tdmZ,tdmXMM,tdmYMM,tdmZMM,
-	    qm,mm,m,QMgrad_S0,QMgrad_S1,MMgrad_S0,MMgrad_S1,qm->polariton,hopto[0],
-	    nacQM, nacMM);
-    dohop[0] = check_vel(cr,eigval,nacQM,nacMM,qm,mm,
-			 qm->polariton,hopto[0],&fcorr);
+            qm,mm,m,QMgrad_S0,QMgrad_S1,MMgrad_S0,MMgrad_S1,qm->polariton,hopto[0],
+            nacQM, nacMM);
+    dohop[0] = check_vel(cr,eigval,nacQM,nacMM,qm,mm,qm->polariton,hopto[0],&fcorr);
     if(MULTISIM(cr)){
       gmx_sumi_sim(1,dohop,cr->ms);
     }
@@ -4596,40 +4592,38 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
     betasq = conj(eigvec[p*ndim+m])*eigvec[p*ndim+m];
     a_sump = 0.0+IMAG*0.0;
     for (i=0;i<(qm->n_max)+1;i++){
-      a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
+      a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*m*L_au/((double) nmol));
     }
     ab = conj(eigvec[p*ndim+m])*a_sump; //actually sum of alphas * beta_j
     ab += conj(a_sump)*eigvec[p*ndim+m];
     for(i=0;i<qm->nrQMatoms;i++){
       for(j=0;j<DIM;j++){
-	/* diagonal term 
-	 */
-	fij =(betasq*QMgrad_S1[i][j]+(1-betasq)*QMgrad_S0[i][j]);
-	/* off-diagonal term 
-	 */
-	fij-= ab*tdmX[i][j]*u[0];
-	fij-= ab*tdmY[i][j]*u[1];
-	fij-= ab*tdmZ[i][j]*u[2];
-	fij*=HARTREE_BOHR2MD;
-	
-	f[i][j]      += creal(fij);
-	fshift[i][j] += creal(fij);
+        /* diagonal term
+         */
+        fij =(betasq*QMgrad_S1[i][j]+(1-betasq)*QMgrad_S0[i][j]);
+        /* off-diagonal term
+         */
+        fij-= ab*tdmX[i][j]*u[0];
+        fij-= ab*tdmY[i][j]*u[1];
+        fij-= ab*tdmZ[i][j]*u[2];
+        fij*=HARTREE_BOHR2MD;
+        f[i][j]      += creal(fij);
+        fshift[i][j] += creal(fij);
       }
     }
     for(i=0;i<mm->nrMMatoms;i++){
       for(j=0;j<DIM;j++){
-	/* diagonal term 
-	 */
-	fij =(betasq*MMgrad_S1[i][j]+(1-betasq)*MMgrad_S0[i][j]);
-	/* off-diagonal term 
-	 */
+        /* diagonal term
+         */
+        fij =(betasq*MMgrad_S1[i][j]+(1-betasq)*MMgrad_S0[i][j]);
+        /* off-diagonal term
+         */
         fij-= ab*tdmXMM[i][j]*u[0];
         fij-= ab*tdmYMM[i][j]*u[1];
         fij-= ab*tdmZMM[i][j]*u[2];
-	fij*=HARTREE_BOHR2MD;
-
-	f[i+qm->nrQMatoms][j]      += creal(fij);
-	fshift[i+qm->nrQMatoms][j] += creal(fij);
+        fij*=HARTREE_BOHR2MD;
+        f[i+qm->nrQMatoms][j]      += creal(fij);
+        fshift[i+qm->nrQMatoms][j] += creal(fij);
       }
     }
     QMener = eigval[p]*HARTREE2KJ*AVOGADRO;
@@ -4650,67 +4644,66 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
       betasq = conj(eigvec[p*ndim+m])*eigvec[p*ndim+m];
       a_sump = 0.0+IMAG*0.0;
       for (i=0;i<(qm->n_max)+1;i++){
-	a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
+        a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*m*L_au/((double) nmol));
       }
       ab = conj(eigvec[p*ndim+m])*a_sump; //actually sum of alphas * beta_j
       ab += conj(a_sump)*eigvec[p*ndim+m]; // ADDED GG, this accounts for the 3rd and 4th term together in equation 13. 
       QMener += csq*eigval[p]*HARTREE2KJ*AVOGADRO/totpop;
       for(i=0;i<qm->nrQMatoms;i++){
-	for(j=0;j<DIM;j++){
-	  /* diagonal term 
-	   */
-	  fij =(betasq*QMgrad_S1[i][j]+(1-betasq)*QMgrad_S0[i][j]);
-	  /* off-diagonal term, Because coeficients are real: ab = ba
-	   */
-	  fij-= ab*tdmX[i][j]*u[0];
-	  fij-= ab*tdmY[i][j]*u[1];
-	  fij-= ab*tdmZ[i][j]*u[2];
-	  fij*=HARTREE_BOHR2MD*csq/totpop;
-	  f[i][j]      += creal(fij);
-	  fshift[i][j] += creal(fij);
+        for(j=0;j<DIM;j++){
+          /* diagonal term
+           */
+          fij =(betasq*QMgrad_S1[i][j]+(1-betasq)*QMgrad_S0[i][j]);
+          /* off-diagonal term, Because coeficients are real: ab = ba
+           */
+          fij-= ab*tdmX[i][j]*u[0];
+          fij-= ab*tdmY[i][j]*u[1];
+          fij-= ab*tdmZ[i][j]*u[2];
+          fij*=HARTREE_BOHR2MD*csq/totpop;
+          f[i][j]      += creal(fij);
+          fshift[i][j] += creal(fij);
         }
       }
       for(i=0;i<mm->nrMMatoms;i++){
-	for(j=0;j<DIM;j++){
-	  /* diagonal terms 
-	   */
-	  fij =(betasq*MMgrad_S1[i][j]+(1-betasq)*MMgrad_S0[i][j]);
-	  /* off-diagonal term 
-	   */
-	  fij-= ab*tdmXMM[i][j]*u[0];
-	  fij-= ab*tdmYMM[i][j]*u[1];
-	  fij-= ab*tdmZMM[i][j]*u[2];
-	  fij*=HARTREE_BOHR2MD*csq/totpop;
-	  f[i+qm->nrQMatoms][j]      += creal(fij);
-	  fshift[i+qm->nrQMatoms][j] += creal(fij);
+        for(j=0;j<DIM;j++){
+          /* diagonal terms
+           */
+          fij =(betasq*MMgrad_S1[i][j]+(1-betasq)*MMgrad_S0[i][j]);
+          /* off-diagonal term
+           */
+          fij-= ab*tdmXMM[i][j]*u[0];
+	      fij-= ab*tdmYMM[i][j]*u[1];
+          fij-= ab*tdmZMM[i][j]*u[2];
+          fij*=HARTREE_BOHR2MD*csq/totpop;
+          f[i+qm->nrQMatoms][j]      += creal(fij);
+          fshift[i+qm->nrQMatoms][j] += creal(fij);
         }
       }    
       /* now off-diagonals 
        */
       for (q=p+1;q<ndim;q++){
-	/* normalize
-	 */
-	cpcq = conj(qm->creal[p]+IMAG*(qm->cimag[p]))*(qm->creal[q]+IMAG*(qm->cimag[q]));
-	betasq = conj(eigvec[p*ndim+m])*eigvec[q*ndim+m];
+        /* normalize
+         */
+        cpcq = conj(qm->creal[p]+IMAG*(qm->cimag[p]))*(qm->creal[q]+IMAG*(qm->cimag[q]));
+        betasq = conj(eigvec[p*ndim+m])*eigvec[q*ndim+m];
         bpaq = conj(a_sum)*eigvec[q*ndim+m];
-	a_sumq = 0.0+IMAG*0.0;
-	
+        a_sumq = 0.0+IMAG*0.0;
         for (i=0;i<(qm->n_max)+1;i++){
-	  a_sumq += eigvec[q*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
-	}
+          a_sumq += eigvec[q*ndim+nmol+i]*sqrt(cavity_dispersion(i-qm->n_max,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i-qm->n-max)/L_au*m*L_au/((double) nmol));
+        }
         bpaq = conj(eigvec[p*ndim+m])*a_sumq;
         apbq = conj(a_sump)*eigvec[q*ndim+m];
         bqap = conj(eigvec[q*ndim+m])*a_sump; /* conj(apbq) */
         aqbp = conj(a_sumq)*eigvec[p*ndim+m]; /* conj(bpaq) */
-	for(i=0;i<qm->nrQMatoms;i++){
-	  for(j=0;j<DIM;j++){
-	    /* diagonal term 
-	     */
+        for(i=0;i<qm->nrQMatoms;i++){
+          for(j=0;j<DIM;j++){
+	        /* diagonal term
+             */
             fij=0;
-	    fij = cpcq*betasq*(QMgrad_S1[i][j]-QMgrad_S0[i][j]);
+            fij = cpcq*betasq*(QMgrad_S1[i][j]-QMgrad_S0[i][j]);
             fij+= conj(cpcq)*conj(betasq)*(QMgrad_S1[i][j]-QMgrad_S0[i][j]);
-	    /* off-diagonal term 
-	     */
+            /* off-diagonal term
+             */
             fij-= cpcq*(bpaq+apbq)*tdmX[i][j]*u[0];
             fij-= cpcq*(bpaq+apbq)*tdmY[i][j]*u[1];
             fij-= cpcq*(bpaq+apbq)*tdmZ[i][j]*u[2];
@@ -4718,28 +4711,28 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
             fij-= conj(cpcq)*(bqap+aqbp)*tdmY[i][j]*u[1];
             fij-= conj(cpcq)*(bqap+aqbp)*tdmZ[i][j]*u[2];
             fij*=HARTREE_BOHR2MD/totpop;
-	    f[i][j]      += creal(fij);
+            f[i][j]      += creal(fij);
             fshift[i][j] += creal(fij);
-	  }
+          }
         }
-	for(i=0;i<mm->nrMMatoms;i++){
-	  for(j=0;j<DIM;j++){
-	    /* diagonal term 
-	     */
+        for(i=0;i<mm->nrMMatoms;i++){
+          for(j=0;j<DIM;j++){
+            /* diagonal term
+             */
             fij = cpcq*betasq*(MMgrad_S1[i][j]-MMgrad_S0[i][j]);
             fij+= conj(cpcq)*conj(betasq)*(MMgrad_S1[i][j]-MMgrad_S0[i][j]);
-	    /* off-diagonal term 
-	     */
+            /* off-diagonal term
+             */
             fij-= cpcq*(bpaq+apbq)*tdmXMM[i][j]*u[0];
             fij-= cpcq*(bpaq+apbq)*tdmYMM[i][j]*u[1];
             fij-= cpcq*(bpaq+apbq)*tdmZMM[i][j]*u[2];
             fij-= conj(cpcq)*(bqap+aqbp)*tdmXMM[i][j]*u[0];
             fij-= conj(cpcq)*(bqap+aqbp)*tdmYMM[i][j]*u[1];
             fij-= conj(cpcq)*(bqap+aqbp)*tdmZMM[i][j]*u[2];
-	    fij*=HARTREE_BOHR2MD/totpop;
+            fij*=HARTREE_BOHR2MD/totpop;
             f[i+qm->nrQMatoms][j]      += creal(fij);
             fshift[i+qm->nrQMatoms][j] += creal(fij);
-	  }
+          }
         }
       }
     }
@@ -4802,16 +4795,16 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
     if(doprop){
       MtimesV_complex(ndim,udagger,d,c);
       for(i=0;i<ndim;i++){
-	qm->creal[i] = creal(c[i]);
-	qm->cimag[i] = cimag(c[i]);
+        qm->creal[i] = creal(c[i]);
+        qm->cimag[i] = cimag(c[i]);
       }
     }
     else{
       /* set elements to zero and sum them up later
        */
       for(i=0;i<ndim;i++){
-	qm->creal[i] = 0;
-	qm->cimag[i] = 0;
+        qm->creal[i] = 0;
+        qm->cimag[i] = 0;
       }      
     }
     if(MULTISIM(cr)){
@@ -4833,13 +4826,13 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
      */
     if (doprop){
       for(i=0;i<ndim;i++){
-	c[i] = qm->creal[i]+ IMAG*qm->cimag[i];
+        c[i] = qm->creal[i]+ IMAG*qm->cimag[i];
       }
       transposeM_complex(ndim,udagger,umatrix);
       MtimesV_complex(ndim,umatrix,c,d);
       for(i=0;i<ndim;i++){
-	qm->dreal[i] = creal(d[i]);
-	qm->dimag[i] = cimag(d[i]);
+        qm->dreal[i] = creal(d[i]);
+        qm->dimag[i] = cimag(d[i]);
       }
     }
     
@@ -4847,11 +4840,10 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
       /* set elements to zero and sum them up later
        */
       for(i=0;i<ndim;i++){
-	qm->dreal[i] = 0;
-	qm->dimag[i] = 0;
-	
-	qm->dreal[i] = 0;
-	qm->dimag[i] = 0;
+        qm->dreal[i] = 0;
+        qm->dimag[i] = 0;
+        qm->dreal[i] = 0;
+        qm->dimag[i] = 0;
       }
     } 
     if(MULTISIM(cr)){
@@ -4921,7 +4913,7 @@ double do_diabatic_non_herm(t_commrec *cr,  t_forcerec *fr,
   snew(state,1);
 
   if(MULTISIM(cr)){
-    ndim=cr->ms->nsim+qm->n_max+1;
+    ndim=cr->ms->nsim+(qm->n_max-qm->n_min)+1;
     m=cr->ms->sim;
     nmol=cr->ms->nsim;
     if (!MASTERSIM(cr->ms)){
@@ -4929,7 +4921,7 @@ double do_diabatic_non_herm(t_commrec *cr,  t_forcerec *fr,
     }
   }
   else{
-    ndim=1+qm->n_max+1;
+    ndim=1+(qm->n_max-qm->n_min)+1;
     m=0;
     nmol=1;
     interval=time(NULL);
@@ -4942,40 +4934,40 @@ double do_diabatic_non_herm(t_commrec *cr,  t_forcerec *fr,
   if(dodia){
     if (step){
       for (i=0;i<ndim;i++){
-	c[i]=qm->creal[i]+IMAG*qm->cimag[i];
+        c[i]=qm->creal[i]+IMAG*qm->cimag[i];
       }
       /* interpolate the non-hermitian Hamiltonian 
        */
       for(i=0;i<ndim*ndim;i++){
-	ham[i]=matrix[i]+qm->matrix[i];
+        ham[i]=matrix[i]+qm->matrix[i];
       }
       /* Add the losses -i\gamma\hat{a}^\dagger\hat{a}
        * assuming these do not depend on R or t 
        * The factor 2 is handled in the exp function 
        */
       for(i=nmol;i<ndim;i++){
-	/* hbar*decay rate 6.582119569*10^(\[Minus]16)/10^(-12) into AU
-	 */
-	ham[i*ndim+i]-=IMAG*(qm->QEDdecay)*0.0006582119569/27.2114;
+        /* hbar*decay rate 6.582119569*10^(\[Minus]16)/10^(-12) into AU
+         */
+        ham[i*ndim+i]-=IMAG*(qm->QEDdecay)*0.0006582119569/27.2114;
       }
       /* propagate the coefficients 
        */
       expM_non_herm(ndim,ham,expH, qm->dt);
       MtimesV_complex(ndim,expH,c,ctemp);
       for( i=0;i<ndim;i++){
-	c[i]=ctemp[i];
+        c[i]=ctemp[i];
       }
       if (fr->qr->SHmethod == eSHmethodGranucci){
-	qm->polariton = state[0] = compute_hopping_probability(step,qm,c,expH,ndim);
+        qm->polariton = state[0] = compute_hopping_probability(step,qm,c,expH,ndim);
       }
       for ( i = 0 ; i < ndim ; i++ ){	
-	qm->creal[i] = creal(c[i]);
-	qm->cimag[i] = cimag(c[i]);
+        qm->creal[i] = creal(c[i]);
+        qm->cimag[i] = cimag(c[i]);
       }
       /* some writing */
       fprintf(stderr,"step %d: |D|^2: ",step);
       for(i=0;i<ndim;i++){
-	fprintf (stderr," %.5lf ",conj(c[i])*c[i]);    
+        fprintf (stderr," %.5lf ",conj(c[i])*c[i]);
       }
       fprintf(stderr,"\n");
     }
@@ -4983,8 +4975,8 @@ double do_diabatic_non_herm(t_commrec *cr,  t_forcerec *fr,
       /* first step, keep coefficients unchanged */
       fprintf(stderr,"step %d: |D|^2: ",step);
       for(i=0;i<ndim;i++){
-	c[i] = qm->creal[i]+ IMAG*qm->cimag[i];
-	fprintf (stderr,"%.5lf ",conj(c[i])*c[i]);
+        c[i] = qm->creal[i]+ IMAG*qm->cimag[i];
+        fprintf (stderr,"%.5lf ",conj(c[i])*c[i]);
       }    
       fprintf(stderr,"\n");
       state[0]=qm->polariton;
@@ -5025,8 +5017,8 @@ double do_diabatic_non_herm(t_commrec *cr,  t_forcerec *fr,
   else{ /* Ehrenfest */
     for(i=0;i<ndim;i++){
       for(j=0;j<ndim;j++){
-	cicj=conj(qm->creal[i]+IMAG*qm->cimag[i])*(qm->creal[j]+IMAG*qm->cimag[j]);
-	ener += creal(cicj*matrix[i*ndim+j])+cimag(cicj*matrix[i*ndim+j])*IMAG;
+        cicj=conj(qm->creal[i]+IMAG*qm->cimag[i])*(qm->creal[j]+IMAG*qm->cimag[j]);
+        ener += creal(cicj*matrix[i*ndim+j])+cimag(cicj*matrix[i*ndim+j])*IMAG;
       }
     }
     ener/=totpop;
@@ -5056,41 +5048,39 @@ double do_diabatic_non_herm(t_commrec *cr,  t_forcerec *fr,
     if(m==qm->polariton){
       /* excited state gradients for m */
       for(i=0;i<qm->nrQMatoms;i++){
-	for(j=0;j<DIM;j++){
-	  fij =QMgrad_S1[i][j];
-	  fij*=HARTREE_BOHR2MD;
-	  
-	  f[i][j]      += creal(fij);
-	  fshift[i][j] += creal(fij);
-	}
+        for(j=0;j<DIM;j++){
+          fij =QMgrad_S1[i][j];
+          fij*=HARTREE_BOHR2MD;
+          f[i][j]      += creal(fij);
+          fshift[i][j] += creal(fij);
+        }
       }
       for(i=0;i<mm->nrMMatoms;i++){
-	for(j=0;j<DIM;j++){
-	  fij =MMgrad_S1[i][j];
-	  fij*=HARTREE_BOHR2MD;
-	  
-	  f[i+qm->nrQMatoms][j]      += creal(fij);
-	  fshift[i+qm->nrQMatoms][j] += creal(fij);
-	}
+        for(j=0;j<DIM;j++){
+          fij =MMgrad_S1[i][j];
+	      fij*=HARTREE_BOHR2MD;
+	      f[i+qm->nrQMatoms][j]      += creal(fij);
+     	  fshift[i+qm->nrQMatoms][j] += creal(fij);
+	    }
       }
     }
     else{
       /* ground state gradients for m */
       for(i=0;i<qm->nrQMatoms;i++){
-	for(j=0;j<DIM;j++){
-	  fij =QMgrad_S0[i][j];
-	  fij*=HARTREE_BOHR2MD;
-	  f[i][j]      += creal(fij);
-	  fshift[i][j] += creal(fij);
-	}
+        for(j=0;j<DIM;j++){
+          fij =QMgrad_S0[i][j];
+          fij*=HARTREE_BOHR2MD;
+          f[i][j]      += creal(fij);
+          fshift[i][j] += creal(fij);
+        }
       }
       for(i=0;i<mm->nrMMatoms;i++){
-	for(j=0;j<DIM;j++){
-	  fij =MMgrad_S0[i][j];
-	  fij*=HARTREE_BOHR2MD;
-	  f[i+qm->nrQMatoms][j]      += creal(fij);
-	  fshift[i+qm->nrQMatoms][j] += creal(fij);
-	}
+        for(j=0;j<DIM;j++){
+          fij =MMgrad_S0[i][j];
+          fij*=HARTREE_BOHR2MD;
+          f[i+qm->nrQMatoms][j]      += creal(fij);
+          fshift[i+qm->nrQMatoms][j] += creal(fij);
+        }
       }
     }
   }
@@ -5098,61 +5088,43 @@ double do_diabatic_non_herm(t_commrec *cr,  t_forcerec *fr,
     csq = conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[m]+IMAG*qm->cimag[m]);
     for(i=0;i<qm->nrQMatoms;i++){
       for(j=0;j<DIM;j++){
-	/* the states are no longer orthonormal, as the norm |c_m(t)|^2 = totpop <= 1
-	 */  
-	fij = csq*QMgrad_S1[i][j]+(totpop-csq)*QMgrad_S0[i][j];
-	for(p=nmol;p<ndim;p++){
-	  cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
-	  cmcp*=sqrt(cavity_dispersion(p-nmol,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(p-nmol)/L_au*m*L_au/((double) nmol));
-	  fij -= cmcp*tdmX[i][j]*u[0];
-	  fij -= cmcp*tdmY[i][j]*u[1];
-	  fij -= cmcp*tdmZ[i][j]*u[2];
-	  
-	  fij -= conj(cmcp)*tdmX[i][j]*u[0];
-	  fij -= conj(cmcp)*tdmY[i][j]*u[1];
-	  fij -= conj(cmcp)*tdmZ[i][j]*u[2];
-	}
-	fij*=HARTREE_BOHR2MD/totpop;
-	f[i][j]      += creal(fij);
-	fshift[i][j] += creal(fij);
+        /* the states are no longer orthonormal, as the norm |c_m(t)|^2 = totpop <= 1
+         */
+        fij = csq*QMgrad_S1[i][j]+(totpop-csq)*QMgrad_S0[i][j];
+        for(p=nmol;p<ndim;p++){
+          cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
+	      cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(p-nmol+qm->n_min)/L_au*m*L_au/((double) nmol));
+          fij -= cmcp*tdmX[i][j]*u[0];
+          fij -= cmcp*tdmY[i][j]*u[1];
+          fij -= cmcp*tdmZ[i][j]*u[2];
+          fij -= conj(cmcp)*tdmX[i][j]*u[0];
+          fij -= conj(cmcp)*tdmY[i][j]*u[1];
+          fij -= conj(cmcp)*tdmZ[i][j]*u[2];
+        }
+        fij*=HARTREE_BOHR2MD/totpop;
+        f[i][j]      += creal(fij);
+        fshift[i][j] += creal(fij);
       }
     }
     for(i=0;i<mm->nrMMatoms;i++){
       for(j=0;j<DIM;j++){
-	fij = csq*MMgrad_S1[i][j]+(totpop-csq)*MMgrad_S0[i][j];
-	for(p=nmol;p<ndim;p++){
-	  cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
-	  cmcp*=sqrt(cavity_dispersion(p-nmol,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(p-nmol)/L_au*m*L_au/((double) nmol));
-	  fij -= cmcp*tdmXMM[i][j]*u[0];
-	  fij -= cmcp*tdmYMM[i][j]*u[1];
-	  fij -= cmcp*tdmZMM[i][j]*u[2];
-	  
-	  fij -= conj(cmcp)*tdmXMM[i][j]*u[0];
-	  fij -= conj(cmcp)*tdmYMM[i][j]*u[1];
-	  fij -= conj(cmcp)*tdmZMM[i][j]*u[2];
-	}
-	fij*=HARTREE_BOHR2MD/totpop;
-	f[i+qm->nrQMatoms][j]      += creal(fij);
-	fshift[i+qm->nrQMatoms][j] += creal(fij);	
+        fij = csq*MMgrad_S1[i][j]+(totpop-csq)*MMgrad_S0[i][j];
+        for(p=nmol;p<ndim;p++){
+          cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
+          cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(p-nmol+qm->n_min)/L_au*m*L_au/((double) nmol));
+          fij -= cmcp*tdmXMM[i][j]*u[0];
+          fij -= cmcp*tdmYMM[i][j]*u[1];
+          fij -= cmcp*tdmZMM[i][j]*u[2];
+          fij -= conj(cmcp)*tdmXMM[i][j]*u[0];
+          fij -= conj(cmcp)*tdmYMM[i][j]*u[1];
+          fij -= conj(cmcp)*tdmZMM[i][j]*u[2];
+        }
+        fij*=HARTREE_BOHR2MD/totpop;
+        f[i+qm->nrQMatoms][j]      += creal(fij);
+        fshift[i+qm->nrQMatoms][j] += creal(fij);
       }
     }
   }
- 
-  //  if ( fr->qr->SHmethod == eSHmethodEhrenfest ){    
-  // QMener+=(qm->groundstate)*(energies[ndim-1]-cavity_dispersion(qm->n_max,qm));
-  // for(i=0;i<qm->nrQMatoms;i++){
-  //   for(j=0;j<DIM;j++){
-  //     f[i][j]      += (qm->groundstate)*HARTREE_BOHR2MD*QMgrad_S0[i][j];
-  //     fshift[i][j] += (qm->groundstate)*HARTREE_BOHR2MD*QMgrad_S0[i][j];
-  //   }
-  // }
-  // for(i=0;i<mm->nrMMatoms;i++){
-  //   for(j=0;j<DIM;j++){
-  //     f[i+qm->nrQMatoms][j]      += qm->groundstate*HARTREE_BOHR2MD*MMgrad_S0[i][j];
-  //     fshift[i+qm->nrQMatoms][j] += qm->groundstate*HARTREE_BOHR2MD*MMgrad_S0[i][j];
-  //   }
-  // }
-  //}
   if (dodia){
     ///      fprintf(stderr,"rho0 (%d) = %lf, Energy = %lf\n",step,qm->groundstate,energies[ndim-1]-(qm->omega));
     fprintf(stderr,"rho0 (%d) = %lf, Energy = %lf\n",step,qm->groundstate,energies[ndim-1]-cavity_dispersion(qm->n_max,qm));
@@ -5222,7 +5194,7 @@ double do_diabatic(t_commrec *cr,  t_forcerec *fr,
 
   
   if(MULTISIM(cr)){
-    ndim=cr->ms->nsim+qm->n_max+1;
+    ndim=cr->ms->nsim+(qm->n_max-qm->n_min)+1;
     m=cr->ms->sim;
     nmol=cr->ms->nsim;
     if (!MASTERSIM(cr->ms)){
@@ -5230,7 +5202,7 @@ double do_diabatic(t_commrec *cr,  t_forcerec *fr,
     }
   }
   else{
-    ndim=1+qm->n_max+1;
+    ndim=1+(qm->n_max-qm->n_min)+1;
     m=0;
     nmol=1;
     interval=time(NULL);
@@ -5243,29 +5215,29 @@ double do_diabatic(t_commrec *cr,  t_forcerec *fr,
   if(dodia){
     if (step){
       for (i=0;i<ndim;i++){
-	c[i]=qm->creal[i]+IMAG*qm->cimag[i];
+        c[i]=qm->creal[i]+IMAG*qm->cimag[i];
       }
       /* interpolate the Hamiltonian */
       for(i=0;i<ndim*ndim;i++){
-	ham[i]=matrix[i]+qm->matrix[i];
+        ham[i]=matrix[i]+qm->matrix[i];
       }
       /* propagate the coefficients */
       expM_complex2(ndim,ham,expH, qm->dt);
       MtimesV_complex(ndim,expH,c,ctemp);
       for( i=0;i<ndim;i++){
-	c[i]=ctemp[i];
+        c[i]=ctemp[i];
       }
       if (fr->qr->SHmethod == eSHmethodGranucci){
-	qm->polariton = state[0]= compute_hopping_probability(step,qm,c,expH,ndim);
+        qm->polariton = state[0]= compute_hopping_probability(step,qm,c,expH,ndim);
       }
       for ( i = 0 ; i < ndim ; i++ ){	
-	qm->creal[i] = creal(c[i]);
-	qm->cimag[i] = cimag(c[i]);
+        qm->creal[i] = creal(c[i]);
+        qm->cimag[i] = cimag(c[i]);
       }
       /* some writing */
       fprintf(stderr,"step %d: |C|^2: ",step);
       for(i=0;i<ndim;i++){
-	fprintf (stderr," %.5lf ",conj(c[i])*c[i]);    
+        fprintf (stderr," %.5lf ",conj(c[i])*c[i]);
       }
       fprintf(stderr,"\n");
     }
@@ -5273,8 +5245,8 @@ double do_diabatic(t_commrec *cr,  t_forcerec *fr,
       /* first step, keep coefficients unchanged */
       fprintf(stderr,"step %d: |C|^2: ",step);
       for(i=0;i<ndim;i++){
-	c[i] = qm->creal[i]+ IMAG*qm->cimag[i];
-	fprintf (stderr,"%.5lf ",conj(c[i])*c[i]);
+        c[i] = qm->creal[i]+ IMAG*qm->cimag[i];
+        fprintf (stderr,"%.5lf ",conj(c[i])*c[i]);
       }    
       fprintf(stderr,"\n");
       state[0]=qm->polariton;
@@ -5308,11 +5280,8 @@ double do_diabatic(t_commrec *cr,  t_forcerec *fr,
   else { /* Ehrenfest */
     for(i=0;i<ndim;i++){
       for(j=0;j<ndim;j++){
-	cicj=conj(qm->creal[i]+IMAG*qm->cimag[i])*(qm->creal[j]+IMAG*qm->cimag[j]);
-	//      if(dodia){
-	//fprintf(stderr,"cicj: %12lf + %12.8lf I , H[%d][%d] = %12.8lf + %12.8lf I\n \n",creal(cicj),cimag(cicj),i,j,creal(matrix[i*ndim+j]),cimag(matrix[i*ndim+j]));
-	//}
-	ener += creal(matrix[i*ndim+j]*cicj)+cimag(matrix[i*ndim+j]*cicj)*IMAG;
+        cicj=conj(qm->creal[i]+IMAG*qm->cimag[i])*(qm->creal[j]+IMAG*qm->cimag[j]);
+        ener += creal(matrix[i*ndim+j]*cicj)+cimag(matrix[i*ndim+j]*cicj)*IMAG;
       }
     }
     /* determine the normalization and (virtual) ground state population
@@ -5347,45 +5316,41 @@ double do_diabatic(t_commrec *cr,  t_forcerec *fr,
     if(m==qm->polariton){
       /* excited state gradients for m */
       for(i=0;i<qm->nrQMatoms;i++){
-	for(j=0;j<DIM;j++){
-	  fij =QMgrad_S1[i][j];
-	  fij*=HARTREE_BOHR2MD;
-	  
-	  f[i][j]      += creal(fij);
-	  fshift[i][j] += creal(fij);
-	}
+        for(j=0;j<DIM;j++){
+          fij =QMgrad_S1[i][j];
+          fij*=HARTREE_BOHR2MD;
+          f[i][j]      += creal(fij);
+          fshift[i][j] += creal(fij);
+        }
       }
       for(i=0;i<mm->nrMMatoms;i++){
-	for(j=0;j<DIM;j++){
-	  /* diagonal term */
-	  fij =MMgrad_S1[i][j];
-	  /* off-diagonal term */
-	  fij*=HARTREE_BOHR2MD;
-	  
-	  f[i+qm->nrQMatoms][j]      += creal(fij);
-	  fshift[i+qm->nrQMatoms][j] += creal(fij);
-	}
+        for(j=0;j<DIM;j++){
+          /* diagonal term */
+          fij =MMgrad_S1[i][j];
+          /* off-diagonal term */
+          fij*=HARTREE_BOHR2MD;
+	      f[i+qm->nrQMatoms][j]      += creal(fij);
+	      fshift[i+qm->nrQMatoms][j] += creal(fij);
+        }
       }
     }
     else{
       /* ground state gradients for m */
       for(i=0;i<qm->nrQMatoms;i++){
-	for(j=0;j<DIM;j++){
-	  fij =QMgrad_S0[i][j];
-	  fij*=HARTREE_BOHR2MD;
-	  
-	  f[i][j]      += creal(fij);
-	  fshift[i][j] += creal(fij);
-	}
+        for(j=0;j<DIM;j++){
+          fij =QMgrad_S0[i][j];
+          fij*=HARTREE_BOHR2MD;
+          f[i][j]      += creal(fij);
+          fshift[i][j] += creal(fij);
+        }
       }
       for(i=0;i<mm->nrMMatoms;i++){
-	for(j=0;j<DIM;j++){
-	  fij =MMgrad_S0[i][j];
-	  fij*=HARTREE_BOHR2MD;
-	  
-	  f[i+qm->nrQMatoms][j]      += creal(fij);
-	  fshift[i+qm->nrQMatoms][j] += creal(fij);
-	}
+        for(j=0;j<DIM;j++){
+          fij =MMgrad_S0[i][j];
+          fij*=HARTREE_BOHR2MD;
+          f[i+qm->nrQMatoms][j]      += creal(fij);
+          fshift[i+qm->nrQMatoms][j] += creal(fij);
+        }
       }
     }
   }
@@ -5396,60 +5361,41 @@ double do_diabatic(t_commrec *cr,  t_forcerec *fr,
     csq = conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[m]+IMAG*qm->cimag[m]);
     for(i=0;i<qm->nrQMatoms;i++){
       for(j=0;j<DIM;j++){
-	fij = csq*QMgrad_S1[i][j]+(totpop-csq)*QMgrad_S0[i][j];
-	for(p=nmol;p<ndim;p++){
-	  cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
-	  cmcp*=sqrt(cavity_dispersion(p-nmol,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(p-nmol)/L_au*m*L_au/((double) nmol));
-	  fij -= cmcp*tdmX[i][j]*u[0];
-	  fij -= cmcp*tdmY[i][j]*u[1];
-	  fij -= cmcp*tdmZ[i][j]*u[2];
-	  
-	  fij -= conj(cmcp)*tdmX[i][j]*u[0];
-	  fij -= conj(cmcp)*tdmY[i][j]*u[1];
-	  fij -= conj(cmcp)*tdmZ[i][j]*u[2];
-	}
-	fij*=HARTREE_BOHR2MD/totpop;
-	f[i][j]      += creal(fij);
-	fshift[i][j] += creal(fij);
+        fij = csq*QMgrad_S1[i][j]+(totpop-csq)*QMgrad_S0[i][j];
+        for(p=nmol;p<ndim;p++){
+          cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
+          cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*m*L_au/((double) nmol));
+          fij -= cmcp*tdmX[i][j]*u[0];
+          fij -= cmcp*tdmY[i][j]*u[1];
+          fij -= cmcp*tdmZ[i][j]*u[2];
+	      fij -= conj(cmcp)*tdmX[i][j]*u[0];
+	      fij -= conj(cmcp)*tdmY[i][j]*u[1];
+	      fij -= conj(cmcp)*tdmZ[i][j]*u[2];
+        }
+        fij*=HARTREE_BOHR2MD/totpop;
+        f[i][j]      += creal(fij);
+        fshift[i][j] += creal(fij);
       }
     }
     for(i=0;i<mm->nrMMatoms;i++){
       for(j=0;j<DIM;j++){
-	fij = csq*MMgrad_S1[i][j]+(totpop-csq)*MMgrad_S0[i][j];
-	for(p=nmol;p<ndim;p++){
-	  cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
-	  cmcp*=sqrt(cavity_dispersion(p-nmol,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(p-nmol)/L_au*m*L_au/((double) nmol));
-	  fij -= cmcp*tdmXMM[i][j]*u[0];
-	  fij -= cmcp*tdmYMM[i][j]*u[1];
-	  fij -= cmcp*tdmZMM[i][j]*u[2];
-	  
-	  fij -= conj(cmcp)*tdmXMM[i][j]*u[0];
-	  fij -= conj(cmcp)*tdmYMM[i][j]*u[1];
-	  fij -= conj(cmcp)*tdmZMM[i][j]*u[2];
-	}
-	fij*=HARTREE_BOHR2MD/totpop;
-	f[i+qm->nrQMatoms][j]      += creal(fij);
-	fshift[i+qm->nrQMatoms][j] += creal(fij);	
+        fij = csq*MMgrad_S1[i][j]+(totpop-csq)*MMgrad_S0[i][j];
+        for(p=nmol;p<ndim;p++){
+          cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
+	      cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*m*L_au/((double) nmol));
+	      fij -= cmcp*tdmXMM[i][j]*u[0];
+	      fij -= cmcp*tdmYMM[i][j]*u[1];
+	      fij -= cmcp*tdmZMM[i][j]*u[2];
+	      fij -= conj(cmcp)*tdmXMM[i][j]*u[0];
+	      fij -= conj(cmcp)*tdmYMM[i][j]*u[1];
+	      fij -= conj(cmcp)*tdmZMM[i][j]*u[2];
+        }
+        fij*=HARTREE_BOHR2MD/totpop;
+        f[i+qm->nrQMatoms][j]      += creal(fij);
+        fshift[i+qm->nrQMatoms][j] += creal(fij);
       }
     }
   }
-  /* decay using the "trick", explicit decay will be added later */
-  //    if ( fr->qr->SHmethod == eSHmethodEhrenfest ){         
-  // QMener+=(qm->groundstate)*(energies[ndim-1]-cavity_dispersion(qm->n_max,qm));
-  // for(i=0;i<qm->nrQMatoms;i++){//
-  //	for(j=0;j<DIM;j++){
-  //	  f[i][j]      += (qm->groundstate)*HARTREE_BOHR2MD*QMgrad_S0[i][j];
-  //	  fshift[i][j] += (qm->groundstate)*HARTREE_BOHR2MD*QMgrad_S0[i][j];
-  //	}
-  //}
-  //for(i=0;i<mm->nrMMatoms;i++){
-  //	for(j=0;j<DIM;j++){
-  //	  f[i+qm->nrQMatoms][j]      += qm->groundstate*HARTREE_BOHR2MD*MMgrad_S0[i][j];
-  //	  fshift[i+qm->nrQMatoms][j] += qm->groundstate*HARTREE_BOHR2MD*MMgrad_S0[i][j];
-  //	}
-  // }
-  //  }
-  //}
   /* printing the coefficients to C.dat */
   if (dodia){
     fprintf(stderr,"rho0 (%d) = %lf, Energy = %lf\n",step,qm->groundstate,energies[ndim-1]-cavity_dispersion(qm->n_max,qm));
@@ -5484,16 +5430,16 @@ double do_diabatic(t_commrec *cr,  t_forcerec *fr,
   free(ctemp);
   free(state);
   return(QMener);
-  } /* do_diabatic */
+} /* do_diabatic */
   
 
 double do_adiabatic(t_commrec *cr,  t_forcerec *fr, 
-		    t_QMrec *qm, t_MMrec *mm, rvec f[], rvec fshift[],
-		    dplx *matrix, int step,
-		    rvec QMgrad_S1[],rvec MMgrad_S1[],
-		    rvec QMgrad_S0[],rvec MMgrad_S0[],
-		    rvec tdmX[], rvec tdmY[], rvec tdmZ[],
-		    rvec tdmXMM[], rvec tdmYMM[], rvec tdmZMM[],double *energies)
+                    t_QMrec *qm, t_MMrec *mm, rvec f[], rvec fshift[],
+                    dplx *matrix, int step,
+                    rvec QMgrad_S1[],rvec MMgrad_S1[],
+                    rvec QMgrad_S0[],rvec MMgrad_S0[],
+                    rvec tdmX[], rvec tdmY[], rvec tdmZ[],
+                    rvec tdmXMM[], rvec tdmYMM[], rvec tdmZMM[],double *energies)
 {
   double
     *eigvec_real,*eigvec_imag,*eigval,decay,asq,L_au=qm->L*microM2BOHR,
@@ -5528,7 +5474,7 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
   snew(state,1);
   
   if(MULTISIM(cr)){
-    ndim=cr->ms->nsim+qm->n_max+1;
+    ndim=cr->ms->nsim+(qm->n_max-qm->n_min)+1;
     m=cr->ms->sim;
     nmol=cr->ms->nsim;
     if (!MASTERSIM(cr->ms)){
@@ -5536,7 +5482,7 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
     }
   }
   else{
-    ndim=1+qm->n_max+1;
+    ndim=1+(qm->n_max-qm->n_min)+1;
     m=0;
     nmol=1;
     interval=time(NULL);
@@ -5546,11 +5492,6 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
   snew(eigvec_real,ndim*ndim);
   snew(eigvec_imag,ndim*ndim);
   if(dodia){
-
-//    fprintf(stderr,"Matrix elements:\n");
-//    printM_complex(ndim,matrix);
-
-    
     fprintf(stderr,"\n\ndiagonalizing matrix\n");
     diag(ndim,eigval,eigvec,matrix);
     fprintf(stderr,"step %d Eigenvalues: ",step);
@@ -5559,7 +5500,6 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
       qm->eigval[i]=eigval[i]; 
     }
     fprintf(stderr,"\n");
-
     interval=time(NULL);
     if(MULTISIM(cr)){
       fprintf(stderr,"node %d: eigensolver done at %ld\n",cr->ms->sim,interval-start);
@@ -5571,10 +5511,10 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
      */
     if(fr->qr->SHmethod != eSHmethodEhrenfest){
       if(fr->qr->SHmethod == eSHmethoddiabatic){
-	qm->polariton = QEDhop(step,qm,eigvec,ndim,eigval);
+        qm->polariton = QEDhop(step,qm,eigvec,ndim,eigval);
       }
       else{
-	qm->polariton = QEDFSSHop(step,qm,eigvec,ndim,eigval,qm->dt,fr->qr);
+        qm->polariton = QEDFSSHop(step,qm,eigvec,ndim,eigval,qm->dt,fr->qr);
       }
       state[0]=qm->polariton;
     } 
@@ -5590,8 +5530,6 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
     }
   }
   else{/* zero the expansion coefficient on all other nodes */
-//    free(qm->cimag);
-//    free(qm->creal);
     for(i=0;i<ndim;i++){
       qm->cimag[i]=0.;
       qm->creal[i]=0.;
@@ -5635,10 +5573,6 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
   for(i=0;i<ndim*ndim;i++){
     qm->eigvec[i]=eigvec[i];
   }
-
-//  fprintf(stderr,"\n\nEigenvector elements:\n");
-//  printM_complex(ndim,eigvec);
-//  
   if((dodia) ){
     evout=fopen(eigenvectorfile,"a");
     for(i=0;i<ndim;i++){
@@ -5658,46 +5592,40 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
   
   /* compute Hellman Feynman forces. 
    */
-  // if (dodia)
-    //  print_NAC(ndim,nmol,eigvec,eigval,tdmX,tdmY,tdmZ,tdmXMM,tdmYMM,tdmZMM,qm,mm,m,QMgrad_S0,QMgrad_S1,MMgrad_S0,MMgrad_S1);
-
-  
  
   if(fr->qr->SHmethod != eSHmethodEhrenfest){
     p=qm->polariton;
     betasq = conj(eigvec[p*ndim+m])*eigvec[p*ndim+m];
     a_sump = 0.0+IMAG*0.0;
     for (i=0;i<(qm->n_max)+1;i++){
-      a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
+      a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion((i+qm->n_min),qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*m*L_au/((double) nmol));
     }
     ab = conj(eigvec[p*ndim+m])*a_sump; //actually sum of alphas * beta_j
     ab += conj(a_sump)*eigvec[p*ndim+m];
     for(i=0;i<qm->nrQMatoms;i++){
       for(j=0;j<DIM;j++){
-	/* diagonal term */
-	fij =(betasq*QMgrad_S1[i][j]+(1-betasq)*QMgrad_S0[i][j]);
-	/* off-diagonal term */
-	fij-= ab*tdmX[i][j]*u[0];
-	fij-= ab*tdmY[i][j]*u[1];
-	fij-= ab*tdmZ[i][j]*u[2];
-	fij*=HARTREE_BOHR2MD;
-	
-	f[i][j]      += creal(fij);
-	fshift[i][j] += creal(fij);
+        /* diagonal term */
+        fij =(betasq*QMgrad_S1[i][j]+(1-betasq)*QMgrad_S0[i][j]);
+        /* off-diagonal term */
+        fij-= ab*tdmX[i][j]*u[0];
+        fij-= ab*tdmY[i][j]*u[1];
+        fij-= ab*tdmZ[i][j]*u[2];
+        fij*=HARTREE_BOHR2MD;
+        f[i][j]      += creal(fij);
+        fshift[i][j] += creal(fij);
       }
     }
     for(i=0;i<mm->nrMMatoms;i++){
       for(j=0;j<DIM;j++){
-	/* diagonal term */
-	fij =(betasq*MMgrad_S1[i][j]+(1-betasq)*MMgrad_S0[i][j]);
-	/* off-diagonal term */
+        /* diagonal term */
+        fij =(betasq*MMgrad_S1[i][j]+(1-betasq)*MMgrad_S0[i][j]);
+        /* off-diagonal term */
         fij-= ab*tdmXMM[i][j]*u[0];
         fij-= ab*tdmYMM[i][j]*u[1];
         fij-= ab*tdmZMM[i][j]*u[2];
-	fij*=HARTREE_BOHR2MD;
-
-	f[i+qm->nrQMatoms][j]      += creal(fij);
-	fshift[i+qm->nrQMatoms][j] += creal(fij);
+        fij*=HARTREE_BOHR2MD;
+        f[i+qm->nrQMatoms][j]      += creal(fij);
+        fshift[i+qm->nrQMatoms][j] += creal(fij);
       }
     }
     QMener = eigval[p]*HARTREE2KJ*AVOGADRO;
@@ -5716,70 +5644,66 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
       betasq = conj(eigvec[p*ndim+m])*eigvec[p*ndim+m];
       a_sump = 0.0+IMAG*0.0;
       for (i=0;i<(qm->n_max)+1;i++){
-	a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
+        a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion((i+qm->n_min),qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*m*L_au/((double) nmol));
       }
       ab = conj(eigvec[p*ndim+m])*a_sump; //actually sum of alphas * beta_j
       ab += conj(a_sump)*eigvec[p*ndim+m]; // ADDED GG, this accounts for the 3rd and 4th term together in equation 13. 
       QMener += csq*eigval[p]*HARTREE2KJ*AVOGADRO;
       for(i=0;i<qm->nrQMatoms;i++){
-	for(j=0;j<DIM;j++){
-	  /* diagonal term 
-	   */
-	  fij =(betasq*QMgrad_S1[i][j]+(1-betasq)*QMgrad_S0[i][j]);
-	  /* off-diagonal term, Because coeficients are real: ab = ba
-	   */
-	  fij-= ab*tdmX[i][j]*u[0];
-	  fij-= ab*tdmY[i][j]*u[1];
-	  fij-= ab*tdmZ[i][j]*u[2];
-	  fij*=HARTREE_BOHR2MD*csq;
-	  f[i][j]      += creal(fij);
-	  fshift[i][j] += creal(fij);
+        for(j=0;j<DIM;j++){
+          /* diagonal term
+           */
+          fij =(betasq*QMgrad_S1[i][j]+(1-betasq)*QMgrad_S0[i][j]);
+          /* off-diagonal term, Because coeficients are real: ab = ba
+           */
+          fij-= ab*tdmX[i][j]*u[0];
+          fij-= ab*tdmY[i][j]*u[1];
+          fij-= ab*tdmZ[i][j]*u[2];
+          fij*=HARTREE_BOHR2MD*csq;
+          f[i][j]      += creal(fij);
+          fshift[i][j] += creal(fij);
         }
       }
       for(i=0;i<mm->nrMMatoms;i++){
-	for(j=0;j<DIM;j++){
-	  /* diagonal terms 
-	   */
-	  fij =(betasq*MMgrad_S1[i][j]+(1-betasq)*MMgrad_S0[i][j]);
-	  /* off-diagonal term 
-	   */
-	  fij-= ab*tdmXMM[i][j]*u[0];
-	  fij-= ab*tdmYMM[i][j]*u[1];
-	  fij-= ab*tdmZMM[i][j]*u[2];
-	  fij*=HARTREE_BOHR2MD*csq;
-          
-	  f[i+qm->nrQMatoms][j]      += creal(fij);
-	  fshift[i+qm->nrQMatoms][j] += creal(fij);
+        for(j=0;j<DIM;j++){
+          /* diagonal terms
+	       */
+          fij =(betasq*MMgrad_S1[i][j]+(1-betasq)*MMgrad_S0[i][j]);
+           /* off-diagonal term
+            */
+	      fij-= ab*tdmXMM[i][j]*u[0];
+	      fij-= ab*tdmYMM[i][j]*u[1];
+	      fij-= ab*tdmZMM[i][j]*u[2];
+	      fij*=HARTREE_BOHR2MD*csq;
+	      f[i+qm->nrQMatoms][j]      += creal(fij);
+	      fshift[i+qm->nrQMatoms][j] += creal(fij);
         }
       }    
       /* now off-diagonals . Normalized
        */
       for (q=p+1;q<ndim;q++){
-	cpcq = conj(qm->creal[p]+IMAG*(qm->cimag[p]))*(qm->creal[q]+IMAG*(qm->cimag[q]))/totpop;
-	betasq = conj(eigvec[p*ndim+m])*eigvec[q*ndim+m];
+        cpcq = conj(qm->creal[p]+IMAG*(qm->cimag[p]))*(qm->creal[q]+IMAG*(qm->cimag[q]))/totpop;
+        betasq = conj(eigvec[p*ndim+m])*eigvec[q*ndim+m];
 
         bpaq = conj(a_sum)*eigvec[q*ndim+m];
-//	n=-qm->n_max;
-	a_sumq = 0.0+IMAG*0.0;
+        a_sumq = 0.0+IMAG*0.0;
 	
         for (i=0;i<(qm->n_max)+1;i++){
-	  a_sumq += eigvec[q*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
-	}
+          a_sumq += eigvec[q*ndim+nmol+i]*sqrt(cavity_dispersion((i+qm->n_min),qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*m*L_au/((double) nmol));
+        }
         bpaq = conj(eigvec[p*ndim+m])*a_sumq;
         apbq = conj(a_sump)*eigvec[q*ndim+m];
         bqap = conj(eigvec[q*ndim+m])*a_sump; /* conj(apbq) */
         aqbp = conj(a_sumq)*eigvec[p*ndim+m]; /* conj(bpaq) */
-     
- 
-	for(i=0;i<qm->nrQMatoms;i++){
-	  for(j=0;j<DIM;j++){
-	    /* diagonal term 
-	     */
+        for(i=0;i<qm->nrQMatoms;i++){
+          for(j=0;j<DIM;j++){
+	        /* diagonal term
+             */
             fij=0;
-	    fij = cpcq*betasq*(QMgrad_S1[i][j]-QMgrad_S0[i][j]);
+            fij = cpcq*betasq*(QMgrad_S1[i][j]-QMgrad_S0[i][j]);
             fij+= conj(cpcq)*conj(betasq)*(QMgrad_S1[i][j]-QMgrad_S0[i][j]);
-	    /* off-diagonal term 
-	     */
+	        /* off-diagonal term
+	         */
             fij-= cpcq*(bpaq+apbq)*tdmX[i][j]*u[0];
             fij-= cpcq*(bpaq+apbq)*tdmY[i][j]*u[1];
             fij-= cpcq*(bpaq+apbq)*tdmZ[i][j]*u[2];
@@ -5787,29 +5711,28 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
             fij-= conj(cpcq)*(bqap+aqbp)*tdmY[i][j]*u[1];
             fij-= conj(cpcq)*(bqap+aqbp)*tdmZ[i][j]*u[2];
             fij*=HARTREE_BOHR2MD;
-	    f[i][j]      += creal(fij);
+            f[i][j]      += creal(fij);
             fshift[i][j] += creal(fij);
-	  }
+          }
         }
-	for(i=0;i<mm->nrMMatoms;i++){
-	  for(j=0;j<DIM;j++){
-	    /* diagonal term 
-	     */
+        for(i=0;i<mm->nrMMatoms;i++){
+          for(j=0;j<DIM;j++){
+            /* diagonal term
+             */
             fij = cpcq*betasq*(MMgrad_S1[i][j]-MMgrad_S0[i][j]);
             fij+= conj(cpcq)*conj(betasq)*(MMgrad_S1[i][j]-MMgrad_S0[i][j]);
-	    /*l off-diagonal term 
-	     */
+            /*l off-diagonal term
+             */
             fij-= cpcq*(bpaq+apbq)*tdmXMM[i][j]*u[0];
             fij-= cpcq*(bpaq+apbq)*tdmYMM[i][j]*u[1];
             fij-= cpcq*(bpaq+apbq)*tdmZMM[i][j]*u[2];
             fij-= conj(cpcq)*(bqap+aqbp)*tdmXMM[i][j]*u[0];
             fij-= conj(cpcq)*(bqap+aqbp)*tdmYMM[i][j]*u[1];
             fij-= conj(cpcq)*(bqap+aqbp)*tdmZMM[i][j]*u[2];
-	    
-	    fij*=HARTREE_BOHR2MD;
+            fij*=HARTREE_BOHR2MD;
             f[i+qm->nrQMatoms][j]      += creal(fij);
             fshift[i+qm->nrQMatoms][j] += creal(fij);
-	  }
+          }
         }
       }
     }
@@ -5822,25 +5745,9 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
   else{
     fprintf(stderr,"Forces done at %ld\n",interval-start);
   }
-  //if ( fr->qr->SHmethod == eSHmethodEhrenfest ){    
-  // QMener+=(qm->groundstate)*(energies[ndim-1]-cavity_dispersion(qm->n_max,qm));
-  // for(i=0;i<qm->nrQMatoms;i++){
-  //   for(j=0;j<DIM;j++){
-  //     f[i][j]      += (qm->groundstate)*HARTREE_BOHR2MD*QMgrad_S0[i][j];
-  //     fshift[i][j] += (qm->groundstate)*HARTREE_BOHR2MD*QMgrad_S0[i][j];
-  //   }
-  // }
-  // for(i=0;i<mm->nrMMatoms;i++){
-  //   for(j=0;j<DIM;j++){
-  //     f[i+qm->nrQMatoms][j]      += qm->groundstate*HARTREE_BOHR2MD*MMgrad_S0[i][j];
-  //     fshift[i+qm->nrQMatoms][j] += qm->groundstate*HARTREE_BOHR2MD*MMgrad_S0[i][j];
-  //   }
-  // }
-  //}
   if ( fr->qr->SHmethod !=  eSHmethoddiabatic ){
     /* printing the coefficients to C.dat */
     if (dodia){
-///      fprintf(stderr,"rho0 (%d) = %lf, Energy = %lf\n",step,qm->groundstate,energies[ndim-1]-(qm->omega));
       fprintf(stderr,"rho0 (%d) = %lf, Energy = %lf\n",step,qm->groundstate,energies[ndim-1]-cavity_dispersion(qm->n_max,qm));
       sprintf(buf,"%s/C.dat",qm->work_dir);
       Cout= fopen(buf,"w");
@@ -5855,14 +5762,14 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
     if(qm->QEDdecay>0.0){
       qm->groundstate=0;
       for ( i = 0 ; i < ndim ; i++ ){
-	asq = 0.0;
-	for (j=0;j<qm->n_max+1;j++){
-	  asq += conj(eigvec[i*ndim+nmol+j])*eigvec[i*ndim+nmol+j];
-	}
-	decay = exp(-0.5*(qm->QEDdecay)*asq*(qm->dt)); 
-	qm->groundstate-=conj(qm->creal[i]+IMAG*qm->cimag[i])*(qm->creal[i]+IMAG*qm->cimag[i])*(decay*decay-1);
-	qm->creal[i] *= decay;
-	qm->cimag[i] *= decay;
+        asq = 0.0;
+        for (j=0;j<qm->n_max+1;j++){
+          asq += conj(eigvec[i*ndim+nmol+j])*eigvec[i*ndim+nmol+j];
+        }
+        decay = exp(-0.5*(qm->QEDdecay)*asq*(qm->dt));
+        qm->groundstate-=conj(qm->creal[i]+IMAG*qm->cimag[i])*(qm->creal[i]+IMAG*qm->cimag[i])*(decay*decay-1);
+        qm->creal[i] *= decay;
+        qm->cimag[i] *= decay;
       }
     }
     /* now account also for the decoherence that will also happen in the next timestep */
@@ -5962,13 +5869,13 @@ real call_gaussian_QED(t_commrec *cr,  t_forcerec *fr,
     if (cr->ms->sim==0){
       fprintf(stderr,"node %d: read_gaussian done at %ld\n",cr->ms->sim,interval-start);
     }
-    ndim=cr->ms->nsim+qm->n_max+1;
+    ndim=cr->ms->nsim+(qm->n_max-qm->n_min)+1;
     m=cr->ms->sim;
     nmol=cr->ms->nsim;
   }
   else{
     fprintf(stderr,"read_gaussian done at %ld\n",interval-start);
-    ndim=1+qm->n_max+1;
+    ndim=1+(qm->n_max-qm->n_min)+1;
     m=0;
     nmol=1;
   }
@@ -5994,8 +5901,8 @@ real call_gaussian_QED(t_commrec *cr,  t_forcerec *fr,
 //  for (i=qm->n_max;i>0;i--){
 //    energies[ndim-(qm->n_max+1)-i]+=cavity_dispersion(i,qm);
 //  }
-  for (i=0;i<qm->n_max+1;i++){
-    energies[nmol+i]+=cavity_dispersion(i,qm);
+  for (i=0;i< (qm->n_max-qm->n_min)+1;i++){
+    energies[nmol+i]+=cavity_dispersion(qm->n_min+i,qm);
   } /* after summing the ground state energies, the photon energy of the cavity 
       (such that w[k]=w[-k]) is added to the last 2*n_max+1 diagonal terms,  */
 
@@ -6003,7 +5910,7 @@ real call_gaussian_QED(t_commrec *cr,  t_forcerec *fr,
      moment with the unit vector of the E-field of the cavity/plasmon times the
      E-field magnitud that is now k-dependent through w(k)
   */
-  snew(couplings,nmol*((qm->n_max)+1));
+  snew(couplings,nmol*((qm->n_max-qm->n_min)+1));
   double E0_norm_sq;
   E0_norm_sq = iprod(qm->E,qm->E); // Square of the magitud of the E-field at k=0
   double V0_2EP = qm->omega/(E0_norm_sq); //2*Epsilon0*V_cav at k=0 (in a.u.)
@@ -6012,29 +5919,23 @@ real call_gaussian_QED(t_commrec *cr,  t_forcerec *fr,
   u[0]=qm->E[0]/sqrt(E0_norm_sq);
   u[1]=qm->E[1]/sqrt(E0_norm_sq);
   u[2]=qm->E[2]/sqrt(E0_norm_sq); //unit vector in E=Ex*u1+Ey*u2+Ez*u3
-//  for (i=qm->n_max;i>0;i--){
-//    couplings[m*(qm->n_max*2+1)+qm->n_max-i] = iprod(tdm,u)*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
-//  }
-//
 
-//  fprintf(stderr,"u: {%lf, %lf, %lf}\n",u[0],u[1],u[2]);
-//  fprintf(stderr,"tdm: {%lf, %lf, %lf}\n",tdm[0],tdm[1],tdm[2]);
-  for (i=0;i<qm->n_max+1;i++){
+  for (i=0;i<(qm->n_max-qm->n_min+1);i++){
 //    couplings[m*((qm->n_max)+1)+i] = -iprod(tdm,u)*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
-    couplings[m*((qm->n_max)+1)+i] = -iprod(tdm,u)*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
+    couplings[m*((qm->n_max-qm->n_min)+1)+i] = -iprod(tdm,u)*sqrt(cavity_dispersion(qm->n_min+i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(qm->n_min+i)/L_au*m*L_au/((double) nmol));
   }
   /* send couplings around */
-  snew(send_couple_real,nmol*((qm->n_max)+1));
-  snew(send_couple_imag,nmol*((qm->n_max)+1));
-  for (i=0;i<nmol*((qm->n_max)+1);i++){
+  snew(send_couple_real,nmol*((qm->n_max-qm->n_min)+1));
+  snew(send_couple_imag,nmol*((qm->n_max-qm->n_min)+1));
+  for (i=0;i<nmol*((qm->n_max-qm->nmax)+1);i++){
     send_couple_real[i]=creal(couplings[i]);
     send_couple_imag[i]=cimag(couplings[i]);
   }
   if(MULTISIM(cr)){
-    gmx_sumd_sim(nmol*((qm->n_max)+1),send_couple_real,cr->ms);
-    gmx_sumd_sim(nmol*((qm->n_max)+1),send_couple_imag,cr->ms);
+    gmx_sumd_sim(nmol*((qm->n_max-qm->n_min)+1),send_couple_real,cr->ms);
+    gmx_sumd_sim(nmol*((qm->n_max-qm->n_min)+1),send_couple_imag,cr->ms);
   }
-  for (i=0;i<nmol*((qm->n_max)+1);i++){
+  for (i=0;i<nmol*((qm->n_max-qm->n_min)+1);i++){
     couplings[i]=send_couple_real[i]+IMAG*send_couple_imag[i];
   }
 
@@ -6045,14 +5946,14 @@ real call_gaussian_QED(t_commrec *cr,  t_forcerec *fr,
     matrix[i+(i*ndim)]=energies[i];
   }
   for (k=0;k<nmol;k++){
-    for (j=0;j<((qm->n_max)+1);j++){
+    for (j=0;j<((qm->n_max-qm->n_min)+1);j++){
       /* GG @ 5.1.2023: altered which block we take the complex conjugate
        * of. Turns out that when running in the diabatic
        * representation, with the adjoint of the upper right block, the
        * molecular wavepacket is moving in the wrong directon.
        */
-      matrix[nmol+j+(k*ndim)]= (couplings[k*((qm->n_max)+1)+j]);
-      matrix[ndim*nmol+k+(j*ndim)]=conj(couplings[k*((qm->n_max)+1)+j]);
+      matrix[nmol+j+(k*ndim)]= (couplings[k*((qm->n_max-qm->n_min)+1)+j]);
+      matrix[ndim*nmol+k+(j*ndim)]=conj(couplings[k*((qm->n_max-qm->n_min)+1)+j]);
     }
   }
   

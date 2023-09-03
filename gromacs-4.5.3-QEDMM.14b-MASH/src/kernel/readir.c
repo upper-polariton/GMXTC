@@ -1020,7 +1020,7 @@ void get_ir(const char *mdparin,const char *mdparout,
   RTYPE ("n_index",ir->n_index,1.0); /* refractive index */
   RTYPE ("L",ir->L,1.0); /* cavity width to be given in micro-meters (then converted to a.u. internally) */
   ITYPE ("n_max",ir->n_max,0); /* maximum number of modes */
-
+  ITYPE ("n_max",ir->n_min,0); /* minimum number of modes */
   CTYPE ("Surface Hopping Method");
   EETYPE("SHmethod",  ir->SHmethod,    eSHmethod_names);
   CTYPE ("QED representation");

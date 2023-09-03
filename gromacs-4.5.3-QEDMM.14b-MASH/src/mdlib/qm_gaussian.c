@@ -4415,7 +4415,7 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
        */
       else{
         for(i=0;i<ndim;i++){
-         md[i] = qm->dreal[i]+ IMAG*qm->dimag[i];
+          d[i] = qm->dreal[i]+ IMAG*qm->dimag[i];
         }
         MtimesV_complex(ndim,udagger,d,c);
         for ( i = 0 ; i < ndim ; i++ ){
@@ -5924,7 +5924,7 @@ real call_gaussian_QED(t_commrec *cr,  t_forcerec *fr,
 //    couplings[m*((qm->n_max)+1)+i] = -iprod(tdm,u)*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
     couplings[m*((qm->n_max-qm->n_min)+1)+i] = -iprod(tdm,u)*sqrt(cavity_dispersion(qm->n_min+i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(qm->n_min+i)/L_au*m*L_au/((double) nmol));
   }
-  /* send couplings around *
+  /* send couplings around */
   snew(send_couple_real,nmol*((qm->n_max-qm->n_min)+1));
   snew(send_couple_imag,nmol*((qm->n_max-qm->n_min)+1));
   for (i=0;i<nmol*((qm->n_max-qm->n_max)+1);i++){

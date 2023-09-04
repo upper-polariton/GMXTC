@@ -5927,7 +5927,7 @@ real call_gaussian_QED(t_commrec *cr,  t_forcerec *fr,
   /* send couplings around */
   snew(send_couple_real,nmol*((qm->n_max-qm->n_min)+1));
   snew(send_couple_imag,nmol*((qm->n_max-qm->n_min)+1));
-  for (i=0;i<nmol*((qm->n_max-qm->n_max)+1);i++){
+  for (i=0;i<nmol*((qm->n_max-qm->n_min)+1);i++){
     send_couple_real[i]=creal(couplings[i]);
     send_couple_imag[i]=cimag(couplings[i]);
   }

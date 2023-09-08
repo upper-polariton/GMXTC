@@ -1599,7 +1599,7 @@ void init_gaussian(t_commrec *cr, t_QMrec *qm, t_MMrec *mm){
           gmx_fatal(FARGS,"no $TMP_DIR, this is were the temporary in/output is written.\n");
       }
       /* now deterimin the actual size of ndim */
-      ndim+=qm->n_max+1;
+      ndim+=qm->n_max-qm->n_min+1;
       snew(qm->creal,ndim);
       snew(qm->cimag,ndim);
       snew(qm->dreal,ndim);

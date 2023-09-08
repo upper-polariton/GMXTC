@@ -377,7 +377,7 @@ static void init_QMrec(int grpnr, t_QMrec *qm,int nr, int *atomarray,
   qm->E[1]           = ir->EMFy;
   qm->E[2]           = ir->EMFz;
   qm->n_max          = ir->n_max;
-    qm->n_min = ir->n_min;
+  qm->n_min          = ir->n_min;
   qm->L              = ir->L;
   qm->n_index        = ir->n_index;
   qm->dt             = ir->delta_t;

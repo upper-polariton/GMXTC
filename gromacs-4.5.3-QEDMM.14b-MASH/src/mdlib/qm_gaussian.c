@@ -3190,8 +3190,8 @@ void   propagate_TDSE(int step, t_QMrec *qm, dplx *eigvec, int ndim, double *eig
 
 void decoherence(t_commrec *cr, t_QMrec *qm, t_MMrec *mm, int ndim, double *eigval){
 
-/* decoherence correction by Granucci et al (J. Chem. Phys. 126, 134114 (2007) */
-  int 
+/* decoherence correction by Granucci et al. (J. Chem. Phys. 126, 134114 (2007) */
+  int
     state,i;
   double 
     sum,decay=0.0,tau,ekin[1];
@@ -3244,7 +3244,7 @@ void decoherence(t_commrec *cr, t_QMrec *qm, t_MMrec *mm, int ndim, double *eigv
   
 //  fprintf(stderr,"sum = %lf, |c_M(0)|^2 = %lf; sum+|c_M(0)|^2=%lf\n",sum,(qm->creal[qm->polariton])*(qm->creal[qm->polariton])+(qm->cimag[qm->polariton])*(qm->cimag[qm->polariton]),sum+(qm->creal[qm->polariton])*(qm->creal[qm->polariton])+(qm->cimag[qm->polariton])*(qm->cimag[qm->polariton]));
   /* add the contribution of the ground state too */
-  //  sum+=qm->groundstate;
+  sum+=qm->groundstate;
   decay = sqrt((1.0-sum)/((qm->creal[qm->polariton])*(qm->creal[qm->polariton])+(qm->cimag[qm->polariton])*(qm->cimag[qm->polariton])));
   qm->creal[qm->polariton]*=decay;
   qm->cimag[qm->polariton]*=decay;

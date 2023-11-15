@@ -1,3 +1,0 @@
-winthreads.lo: winthreads.c ../../../src/config.h
-
-../../../src/config.h:

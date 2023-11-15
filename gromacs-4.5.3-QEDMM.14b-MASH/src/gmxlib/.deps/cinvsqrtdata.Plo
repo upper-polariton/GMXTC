@@ -1,3 +1,0 @@
-cinvsqrtdata.lo: cinvsqrtdata.c ../../src/config.h
-
-../../src/config.h:

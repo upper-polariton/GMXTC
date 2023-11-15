@@ -1,0 +1,3 @@
+gmx_fft_fftpack.lo: gmx_fft_fftpack.c ../../src/config.h
+
+../../src/config.h:

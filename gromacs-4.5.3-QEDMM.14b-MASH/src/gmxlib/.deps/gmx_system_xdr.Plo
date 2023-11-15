@@ -1,0 +1,3 @@
+gmx_system_xdr.lo: gmx_system_xdr.c ../../src/config.h
+
+../../src/config.h:

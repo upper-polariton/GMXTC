@@ -3311,7 +3311,7 @@ void get_NAC(int ndim, int nmol,dplx  *eigvec,double *eigval,rvec *tdmX,
       fij-= (bpaq+apbq)*tdmX[i][j]*u[0];
 	  fij-= (bpaq+apbq)*tdmY[i][j]*u[1];
 	  fij-= (bpaq+apbq)*tdmZ[i][j]*u[2];
-	  fij*=HARTREE_BOHRq2MD;
+	  fij*=HARTREE_BOHR2MD;
       fij/=(HARTREE2KJ*AVOGADRO*gap);
 	  nacQM[i][j] +=creal(fij);
     }

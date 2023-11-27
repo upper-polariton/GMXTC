@@ -3289,44 +3289,44 @@ void get_NAC(int ndim, int nmol,dplx  *eigvec,double *eigval,rvec *tdmX,
   a_sump = 0.0+IMAG*0.0;
   gap = eigval[q]-eigval[p];
   //  if (gap > 0.0001 || gap < -0.0001){
-    for (i=0;i<(qm->n_max)+1;i++){
-      a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
+  for (i=0;i<(qm->n_max)+1;i++){
+    a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
+  }
+  betasq = conj(eigvec[p*ndim+m])*eigvec[q*ndim+m];
+  a_sumq = 0.0+IMAG*0.0;
+  for (i=0;i<(qm->n_max)+1;i++){
+    a_sumq += eigvec[q*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
+  }
+  bpaq = a_sumq*conj(eigvec[p*ndim+m]);
+  apbq = conj(a_sump)*eigvec[q*ndim+m];
+  bqap = conj(eigvec[q*ndim+m])*(a_sump); /* conj(apbq) */
+  aqbp = conj(a_sumq)*eigvec[p*ndim+m]; /* conj(bpaq) */
+  for(i=0;i<qm->nrQMatoms;i++){
+    for(j=0;j<DIM;j++){
+	  /* diagonal term
+	   */
+	  fij = betasq*(QMgrad_S1[i][j]-QMgrad_S0[i][j]);
+	  /* off-diagonal term
+	   */
+      fij-= (bpaq+apbq)*tdmX[i][j]*u[0];
+	  fij-= (bpaq+apbq)*tdmY[i][j]*u[1];
+	  fij-= (bpaq+apbq)*tdmZ[i][j]*u[2];
+	  fij*=HARTREE_BOHR2MD;
+      fij/=(HARTREE2KJ*AVOGADRO*gap);
+	  nacQM[i][j] +=creal(fij);
     }
-    betasq = conj(eigvec[p*ndim+m])*eigvec[q*ndim+m];
-    a_sumq = 0.0+IMAG*0.0;
-    for (i=0;i<(qm->n_max)+1;i++){
-      a_sumq += eigvec[q*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
+  }
+  for(i=0;i<mm->nrMMatoms;i++){
+    for(j=0;j<DIM;j++){
+	  fij = betasq*(MMgrad_S1[i][j]-MMgrad_S0[i][j]);
+	  fij-= (bpaq+apbq)*tdmXMM[i][j]*u[0];
+      fij-= (bpaq+apbq)*tdmYMM[i][j]*u[1];
+	  fij-= (bpaq+apbq)*tdmZMM[i][j]*u[2];
+	  fij*=HARTREE_BOHR2MD;
+      fij/=(HARTREE2KJ*AVOGADRO*gap);
+	  nacMM[i][j] +=creal(fij);
     }
-    bpaq = a_sumq*conj(eigvec[p*ndim+m]);
-    apbq = conj(a_sump)*eigvec[q*ndim+m];
-    bqap = conj(eigvec[q*ndim+m])*(a_sump); /* conj(apbq) */
-    aqbp = conj(a_sumq)*eigvec[p*ndim+m]; /* conj(bpaq) */
-    for(i=0;i<qm->nrQMatoms;i++){
-      for(j=0;j<DIM;j++){
-	/* diagonal term 
-	 */
-	fij = betasq*(QMgrad_S1[i][j]-QMgrad_S0[i][j]);
-	/* off-diagonal term 
-	 */
-	fij-= (bpaq+apbq)*tdmX[i][j]*u[0];
-	fij-= (bpaq+apbq)*tdmY[i][j]*u[1];
-	fij-= (bpaq+apbq)*tdmZ[i][j]*u[2];
-	fij/gap;
-	fij*=HARTREE_BOHR2MD;
-	nacQM[i][j] +=creal(fij);	
-      }
-    }
-    for(i=0;i<mm->nrMMatoms;i++){
-      for(j=0;j<DIM;j++){
-	fij = betasq*(MMgrad_S1[i][j]-MMgrad_S0[i][j]);
-	fij-= (bpaq+apbq)*tdmXMM[i][j]*u[0];
-	fij-= (bpaq+apbq)*tdmYMM[i][j]*u[1];
-	fij-= (bpaq+apbq)*tdmZMM[i][j]*u[2];
-	fij/=gap;
-	fij*=HARTREE_BOHR2MD;
-	nacMM[i][j] +=creal(fij);
-      }
-    }  
+  }
     //  }
 } /* get_NAC */
 
@@ -3528,8 +3528,8 @@ void print_NAC(int ndim, int nmol,dplx  *eigvec,double *eigval,rvec *tdmX, rvec 
             fij-= (bpaq+apbq)*tdmXMM[i][j]*u[0];
             fij-= (bpaq+apbq)*tdmYMM[i][j]*u[1];
             fij-= (bpaq+apbq)*tdmZMM[i][j]*u[2];
-            fij/=gap;
             fij*=HARTREE_BOHR2MD;
+            fij/=(HARTREE2KJ*AVOGADRO*gap);
           }
         }  
       }
@@ -3712,7 +3712,7 @@ double do_hybrid_non_herm(t_commrec *cr,  t_forcerec *fr,
   if(doprop){
     if(step){
       for (i=0;i<ndim;i++){
-	d[i]=qm->dreal[i]+IMAG*qm->dimag[i];
+        d[i]=qm->dreal[i]+IMAG*qm->dimag[i];
       }
       /* interpolate the Hamiltonian 
        */

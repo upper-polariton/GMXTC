@@ -3311,7 +3311,7 @@ void get_NAC(int ndim, int nmol,dplx  *eigvec,double *eigval,rvec *tdmX,
       fij-= (bpaq+apbq)*tdmX[i][j]*u[0];
 	  fij-= (bpaq+apbq)*tdmY[i][j]*u[1];
 	  fij-= (bpaq+apbq)*tdmZ[i][j]*u[2];
-	  fij*=HARTREE_BOHR2MD;
+	  fij*=HARTREE_BOHRq2MD;
       fij/=(HARTREE2KJ*AVOGADRO*gap);
 	  nacQM[i][j] +=creal(fij);
     }
@@ -3348,7 +3348,7 @@ static int check_vel(t_commrec *cr,
    */
 
   /* all nodes have this? */
-  
+  /* NAC in principle is complex antisymmetric / antihermitian. We shoudl update therefore from rvec to complex rvec types */
   dE = (QMener[K] - QMener[J])*HARTREE2KJ*AVOGADRO;
   fprintf(stderr,"The energy gap for hopping from state %d to state %d is %lf\n",J,K,dE);
   /* \sum_A M_A (\vec d^IJ_A)^2 
@@ -3370,19 +3370,20 @@ static int check_vel(t_commrec *cr,
   a*=0.5;
   for(i=0;i<qm->nrQMatoms;i++){
     if(qm->ffmass[i]>0.){
-      b+=dot(3,qm->vQM[i],QMnac[i]);
+    //b+=dot(3,qm->vQM[i],QMnac[i]);
+      b+=dot(3,QMnac[i],qm->vQM[i]);
     }
   }
   fprintf(stderr,"before MM, b= %lf\n",b);
   for(i=0;i<mm->nrMMatoms;i++){
     if(mm->ffmass[i]>0.){
-      b+=dot(3,mm->vMM[i],MMnac[i]);
+//      b+=dot(3,mm->vMM[i],MMnac[i]);
+        b+=dot(3,MMnax[i],mm->vMM[i]);
     }
   }
   if(MULTISIM(cr)){
     gmx_sumd_sim(1,&a,cr->ms);
-    gmx_sumd_sim(1,&b,cr->ms);
-    if(cr->ms->sim==0)
+    gmx_sumd_sim(1,&b,cr->ms);dot    if(cr->ms->sim==0)
       fprintf(stderr,"in check_vel: a = %lf, b = %lf, dE= %lf, (b*b - 4.0*a*dE) = %lf, g = %lf / %lf / %lf\n",a,b,dE,b*b - 4.0*a*dE,( b + sqrt(b*b - 4.0*a*dE))/(2*a),( b - sqrt(b*b - 4.0*a*dE))/(2*a),b/a);
   }
  
@@ -3637,6 +3638,7 @@ double do_hybrid_non_herm(t_commrec *cr,  t_forcerec *fr,
     *eigenvectorfile,*coefficientfile,*energyfile,buf[3000];
   FILE
     *evout=NULL,*Cout=NULL;
+    /* I think these shoudl be complex... for sigle mode it won't matter though */
   rvec
     *nacQM=NULL,*nacMM=NULL;
   

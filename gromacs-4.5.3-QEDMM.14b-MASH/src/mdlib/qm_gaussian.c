@@ -3383,7 +3383,8 @@ static int check_vel(t_commrec *cr,
   }
   if(MULTISIM(cr)){
     gmx_sumd_sim(1,&a,cr->ms);
-    gmx_sumd_sim(1,&b,cr->ms);dot    if(cr->ms->sim==0)
+    gmx_sumd_sim(1,&b,cr->ms);
+    if(cr->ms->sim==0)
       fprintf(stderr,"in check_vel: a = %lf, b = %lf, dE= %lf, (b*b - 4.0*a*dE) = %lf, g = %lf / %lf / %lf\n",a,b,dE,b*b - 4.0*a*dE,( b + sqrt(b*b - 4.0*a*dE))/(2*a),( b - sqrt(b*b - 4.0*a*dE))/(2*a),b/a);
   }
  

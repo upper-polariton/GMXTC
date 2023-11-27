@@ -3378,7 +3378,7 @@ static int check_vel(t_commrec *cr,
   for(i=0;i<mm->nrMMatoms;i++){
     if(mm->ffmass[i]>0.){
 //      b+=dot(3,mm->vMM[i],MMnac[i]);
-        b+=dot(3,MMnac[i],mm->vMM[i]);
+        b+=dot(3,MMnac[i],mm->vMM[i]);
     }
   }
   if(MULTISIM(cr)){

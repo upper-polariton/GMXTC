@@ -3269,6 +3269,9 @@ void get_NAC(int ndim, int nmol,dplx  *eigvec,double *eigval,rvec *tdmX,
 	     rvec *nacQM,rvec *nacMM){
   /* obtain the NAC vector between state p and q
    */  
+    /* NOTE: this assumes real NAC, whereas NAC can be complex. This needs to be fixed at some point However, for the purpose of computing the velocity corrections, it shoudl not matter because the quantity of interest is the v.F + F.v, meaning that with F = a+bi, it reduces to
+     2Re[F.v], which is what we compute.
+     */
   int
     m,i,j;
   dplx

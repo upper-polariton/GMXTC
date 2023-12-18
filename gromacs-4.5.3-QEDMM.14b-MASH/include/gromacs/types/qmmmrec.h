@@ -87,7 +87,10 @@ typedef struct {
   double *cimag;
 double groundstate;
   double QEDdecay;
-  
+  int    n_norm;
+  int    n_super;
+  int    n_tot;
+
   double dt;/*timestep from inputrec */
   real omega ;   /* energy of the cavity EM mode */
   rvec E;

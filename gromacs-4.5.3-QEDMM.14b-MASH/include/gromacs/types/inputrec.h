@@ -290,6 +290,9 @@ typedef struct {
 /* QED/MM stuff */
   real    omega;
   real    QEDdecay;
+  int     n_norm;
+  int     n_super;
+  int     n_tot;
   real    QEDdecoherence;
   real    EMFx,EMFy,EMFz;
   int     polariton;

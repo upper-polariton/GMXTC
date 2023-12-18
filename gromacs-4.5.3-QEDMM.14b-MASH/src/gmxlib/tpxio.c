@@ -885,6 +885,9 @@ static void do_inputrec(t_fileio *fio, t_inputrec *ir,gmx_bool bRead,
       gmx_fio_do_real(fio,ir->scalefactor);
       gmx_fio_do_real(fio,ir->omega);
       gmx_fio_do_real(fio,ir->QEDdecay);
+      gmx_fio_do_int(fio,ir->n_norm);
+      gmx_fio_do_int(fio,ir->n_super);
+      gmx_fio_do_int(fio,ir->n_tot);
       gmx_fio_do_real(fio,ir->QEDdecoherence);
       gmx_fio_do_int(fio,ir->polariton);
 	
@@ -907,7 +910,8 @@ static void do_inputrec(t_fileio *fio, t_inputrec *ir,gmx_bool bRead,
         snew(ir->opts.bSH,         ir->opts.ngQM);
         /* cavity QED */
         snew(ir->opts.bQED,        ir->opts.ngQM);
-snew(ir->opts.bMASH,        ir->opts.ngQM);
+	snew(ir->opts.bMASH,       ir->opts.ngQM);
+        snew(ir->opts.bSupermol,   ir->opts.ngQM);
         snew(ir->opts.CASorbitals, ir->opts.ngQM);
         snew(ir->opts.CASelectrons,ir->opts.ngQM);
         snew(ir->opts.SAon,        ir->opts.ngQM);
@@ -926,6 +930,7 @@ snew(ir->opts.bMASH,        ir->opts.ngQM);
         /* cavity QED */
         bDum=gmx_fio_ndo_gmx_bool(fio,ir->opts.bQED,ir->opts.ngQM);
         bDum=gmx_fio_ndo_gmx_bool(fio,ir->opts.bMASH,ir->opts.ngQM);
+        bDum=gmx_fio_ndo_gmx_bool(fio,ir->opts.bSupermol,ir->opts.ngQM);
         bDum=gmx_fio_ndo_int(fio,ir->opts.CASorbitals,ir->opts.ngQM);
         bDum=gmx_fio_ndo_int(fio,ir->opts.CASelectrons,ir->opts.ngQM);
         bDum=gmx_fio_ndo_real(fio,ir->opts.SAon,ir->opts.ngQM);

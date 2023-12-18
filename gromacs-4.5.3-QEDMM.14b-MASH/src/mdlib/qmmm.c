@@ -369,6 +369,7 @@ static void init_QMrec(int grpnr, t_QMrec *qm,int nr, int *atomarray,
   qm->bSH            = ir->opts.bSH[grpnr];
   qm->bQED           = ir->opts.bQED[grpnr];
   qm->bMASH          = ir->opts.bMASH[grpnr];
+  qm->bSupermol      = ir->opts.bSupermol[grpnr];
   qm->omega          = ir->omega;
   qm->QEDdecay       = ir->QEDdecay;
   qm->QEDdecoherence = ir->QEDdecoherence;
@@ -376,6 +377,9 @@ static void init_QMrec(int grpnr, t_QMrec *qm,int nr, int *atomarray,
   qm->E[0]           = ir->EMFx;
   qm->E[1]           = ir->EMFy;
   qm->E[2]           = ir->EMFz;
+  qm->n_tot          = ir->n_tot;
+  qm->n_norm         = ir->n_norm;
+  qm->n_super        = ir->n_super;
   qm->n_max          = ir->n_max;
   qm->n_min          = ir->n_min;
   qm->L              = ir->L;
@@ -454,6 +458,9 @@ t_QMrec *copy_QMrec(t_QMrec *qm)
   qmcopy->bQED         = qm->bQED;
   qmcopy->omega        = qm->omega;
   qmcopy->QEDdecay     = qm->QEDdecay;
+  qmcopy->n_norm       = qm->n_norm;
+  qmcopy->n_super      = qm->n_super;
+  qmcopy->n_tot        = qm->n_tot;
   qmcopy->QEDdecoherence = qm->QEDdecoherence;
   for (i=0;i<DIM;i++){
     qmcopy->E [i]           = qm->E[i];

@@ -82,7 +82,7 @@ static char **pull_grp;
 static char anneal[STRLEN],anneal_npoints[STRLEN],
   anneal_time[STRLEN],anneal_temp[STRLEN];
 static char QMmethod[STRLEN],QMbasis[STRLEN],QMcharge[STRLEN],QMmult[STRLEN],
-    bSH[STRLEN],bQED[STRLEN],bMASH[STRLEN],
+    bSH[STRLEN],bQED[STRLEN],bMASH[STRLEN],bSupermol[STRLEN],
     CASorbitals[STRLEN], CASelectrons[STRLEN],SAon[STRLEN],
   SAoff[STRLEN],SAsteps[STRLEN],bTS[STRLEN],bOPT[STRLEN]; 
 static char efield_x[STRLEN],efield_xt[STRLEN],efield_y[STRLEN],
@@ -1010,6 +1010,7 @@ void get_ir(const char *mdparin,const char *mdparout,
   CTYPE ("cavity QED");
   STYPE ("QED",          bQED, NULL);
   STYPE ("MASH",          bMASH, NULL);
+  STYPE ("Supermol",      bSupermol, NULL);
   RTYPE ("omega",ir->omega,0.0);
   RTYPE ("QEDdecay",ir->QEDdecay,0.0);
   RTYPE ("QEDdecoherence",ir->QEDdecoherence,0.0);
@@ -1021,6 +1022,9 @@ void get_ir(const char *mdparin,const char *mdparout,
   RTYPE ("L",ir->L,1.0); /* cavity width to be given in micro-meters (then converted to a.u. internally) */
   ITYPE ("n_max",ir->n_max,0); /* maximum number of modes */
   ITYPE ("n_min",ir->n_min,0); /* minimum number of modes */
+  ITYPE ("n_norm",ir->n_norm,0); /* integer defining the number of normal molecules */
+  ITYPE ("n_super",ir->n_super,0); /* integer defining the number of supermolecules */
+  ITYPE ("n_tot",ir->n_tot,0); /* integer defining the total number of molecules */
   CTYPE ("Surface Hopping Method");
   EETYPE("SHmethod",  ir->SHmethod,    eSHmethod_names);
   CTYPE ("QED representation");
@@ -1797,7 +1801,7 @@ void do_index(const char* mdparin, const char *ndx,
   int     i,j,k,restnm;
   real    SAtime;
   gmx_bool    bExcl,bTable,bSetTCpar,bAnneal,bRest;
-  int     nQMmethod,nQMbasis,nQMcharge,nQMmult,nbSH,nbQED,nbMASH,nCASorb,nCASelec,
+  int     nQMmethod,nQMbasis,nQMcharge,nQMmult,nbSH,nbQED,nbMASH,nbSupermol,nCASorb,nCASelec,
     nSAon,nSAoff,nSAsteps,nQMg,nbOPT,nbTS;
   char    warn_buf[STRLEN];
 
@@ -2153,6 +2157,11 @@ void do_index(const char* mdparin, const char *ndx,
   snew(ir->opts.bMASH,nr);
   for(i=0;i<nr;i++){
         ir->opts.bMASH[i]      = (gmx_strncasecmp(ptr3[i],"Y",1)==0);
+  }
+  nbSupermol = str_nelem(bSupermol,MAXPTR,ptr3);
+  snew(ir->opts.bSupermol,nr);
+  for(i=0;i<nr;i++){
+        ir->opts.bSupermol[i]  = (gmx_strncasecmp(ptr3[i],"Y",1)==0);
   } 
   
   nCASelec  = str_nelem(CASelectrons,MAXPTR,ptr1);

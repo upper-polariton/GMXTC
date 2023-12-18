@@ -87,6 +87,7 @@ typedef struct {
   gmx_bool    *bSH;         /* surface hopping (diabatic hop only)          */
   gmx_bool    *bQED;      /* cavity QED stuff */
   gmx_bool    *bMASH;
+  gmx_bool    *bSupermol;
 
   int     *CASorbitals; /* number of orbiatls in the active space       */
   int     *CASelectrons;/* number of electrons in the active space      */
@@ -292,6 +293,9 @@ typedef struct {
 /* QED/MM stuff */
   real    omega;
   real    QEDdecay;
+  int     n_norm;
+  int     n_super;
+  int     n_tot;
   real    QEDdecoherence;
   real    EMFx,EMFy,EMFz;
   real    n_index; /* Refractive index */

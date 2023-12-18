@@ -95,7 +95,10 @@ typedef struct {
   dplx *matrix;
 double groundstate;
   double QEDdecay;
-  
+  int   n_norm;
+  int   n_super;
+  int   n_tot;
+
   double dt;/*timestep from inputrec */
   real omega ;   /* energy of the cavity EM mode */
   rvec E;
@@ -123,6 +126,7 @@ double groundstate;
   real *ffmass; /* qm atoms masses */
   int restart;
   gmx_bool bMASH;
+  gmx_bool bSupermol;
 } t_QMrec;
 
 typedef struct {

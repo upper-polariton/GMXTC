@@ -3275,6 +3275,10 @@ void get_NAC(int ndim, int nmol,dplx  *eigvec,double *eigval,rvec *tdmX,
     fij,bpaq,apbq,bqap,aqbp,a_sump,a_sumq,betasq;
   double
     gap;
+  double M;
+  if (qm->bSupermol){
+    M = (((double) qm->n_tot)-((double) qm->n_norm))/((double) qm->n_super);   /* number of normal molecules that each supermolecule represents */
+  }
   double E0_norm_sq;
   E0_norm_sq = iprod(qm->E,qm->E);
   // Square of the magitud of the E-field at k=0
@@ -3290,16 +3294,18 @@ void get_NAC(int ndim, int nmol,dplx  *eigvec,double *eigval,rvec *tdmX,
   gap = eigval[q]-eigval[p];
   //  if (gap > 0.0001 || gap < -0.0001){
     for (i=0;i<(qm->n_max)+1;i++){
-      a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
+      a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*qm->z[m]);
+    /*  a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol)); */
     }
     betasq = conj(eigvec[p*ndim+m])*eigvec[q*ndim+m];
     a_sumq = 0.0+IMAG*0.0;
     for (i=0;i<(qm->n_max)+1;i++){
-      a_sumq += eigvec[q*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
+      a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*qm->z[m]);
+    /*  a_sumq += eigvec[q*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol)); */
     }
-    bpaq = a_sumq*conj(eigvec[p*ndim+m]);
-    apbq = conj(a_sump)*eigvec[q*ndim+m];
-    bqap = conj(eigvec[q*ndim+m])*(a_sump); /* conj(apbq) */
+    bpaq = conj(eigvec[p*ndim+m])*a_sumq;
+    apbq = conj(a_sump)*eigvec[q*ndim+m]; 
+    bqap = conj(eigvec[q*ndim+m])*a_sump; /* conj(apbq) */
     aqbp = conj(a_sumq)*eigvec[p*ndim+m]; /* conj(bpaq) */
     for(i=0;i<qm->nrQMatoms;i++){
       for(j=0;j<DIM;j++){
@@ -3492,12 +3498,14 @@ void print_NAC(int ndim, int nmol,dplx  *eigvec,double *eigval,rvec *tdmX, rvec 
       gap = eigval[q]-eigval[p];
       if (gap > 0.0001 || gap < -0.0001){
         for (i=0;i<(qm->n_max)+1;i++){
-          a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(-IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
+	  a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*qm->z[m]);
+        /*  a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(-IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol)); */
         }
         betasq = conj(eigvec[p*ndim+m])*eigvec[q*ndim+m];
         a_sumq = 0.0+IMAG*0.0;
         for (i=0;i<(qm->n_max)+1;i++){
-          a_sumq += eigvec[q*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(-IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
+          a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*qm->z[m]);
+        /*  a_sumq += eigvec[q*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(-IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol)); */
         }
         bpaq = a_sumq*conj(eigvec[p*ndim+m]);
         apbq = conj(a_sump)*eigvec[q*ndim+m];

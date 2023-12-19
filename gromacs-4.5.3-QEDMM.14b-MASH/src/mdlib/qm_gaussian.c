@@ -1430,7 +1430,7 @@ sparse_eigensolver(gmx_sparsematrix_t *    A,
 /* Gaussian interface routines */
 void init_gaussian(t_commrec *cr, t_QMrec *qm, t_MMrec *mm){
   FILE    
-    *rffile=NULL,*out=NULL,*Cin=NULL,*Din=NULL;
+    *rffile=NULL,*out=NULL,*Cin=NULL,*Din=NULL,*zin=NULL;
   ivec
     basissets[eQMbasisNR]={{0,3,0},
 			   {0,3,0},/*added for double sto-3g entry in names.c*/

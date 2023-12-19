@@ -1707,6 +1707,46 @@ void init_gaussian(t_commrec *cr, t_QMrec *qm, t_MMrec *mm){
         qm->groundstate=0.0;
         fprintf(stderr,"setting randon seed to %d\n",seed);
       }
+
+      /* File for positioning the molecules as desired along the z axis */
+      snew(qm->z,ndim-(qm->n_max-qm->n_min+1));
+      zin=fopen("z.dat","r");
+      if(zin){
+        fprintf(stderr,"z.dat file exists, reading z-positions\n");
+        for(i=0;i<ndim-(qm->n_max-qm->n_min+1);i++){
+          if(NULL == fgets(buf,300,zin)){
+            gmx_fatal(FARGS,"Error reading z.dat, check its content\n");
+          }
+          else{
+            sscanf(buf,"%lf",&qm->z[i]);
+            qm->z[i]*=microM2BOHR;
+            if (MULTISIM(cr)){
+              if (cr->ms->sim==0){
+                fprintf(stderr,"node %d, z[%d]=%lf\n",cr->ms->sim,i,qm->z[i]);
+              }
+            }
+            else{
+              fprintf(stderr,"z[%d]=%lf\n",i,qm->z[i]);
+            }
+          }
+        }
+        fclose(zin);
+      }
+      else{
+        fprintf(stderr,"No z-positions file, setting molecules equally spaced along the z-axis\n");
+        for(i=0;i<ndim-(qm->n_max-qm->n_min+1);i++){
+          qm->z[i]=i*qm->L*microM2BOHR/(ndim-(qm->n_max-qm->n_min+1));
+          if (MULTISIM(cr)){
+            if (cr->ms->sim==0){
+              fprintf(stderr,"node %d, z[%d]=%lf\n",cr->ms->sim,i,qm->z[i]);
+            }
+          }
+          else{
+            fprintf(stderr,"z[%d]=%lf\n",i,qm->z[i]);
+          }
+        }
+      }
+
       snew(qm->rnr,qm->nsteps);
       srand(seed);
       for (i=0;i< qm->nsteps;i++){

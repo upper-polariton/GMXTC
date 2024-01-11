@@ -127,6 +127,7 @@ double groundstate;
   real *ffmass; /* qm atoms masses */
   int restart;
   gmx_bool bMASH;
+  gmx_bool      bSupermol;
 } t_QMrec;
 
 typedef struct {
@@ -152,7 +153,7 @@ typedef struct {
   t_MMrec       *mm;        /* there can only be one MM subsystem !   */
   int           SHmethod;
   int           QEDrepresentation;
-  gmx_bool      bSupermol;
+/*  gmx_bool      bSupermol; */
   rvec *v;
 } t_QMMMrec;
 

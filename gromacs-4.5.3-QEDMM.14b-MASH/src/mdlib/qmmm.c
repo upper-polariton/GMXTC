@@ -369,7 +369,7 @@ static void init_QMrec(int grpnr, t_QMrec *qm,int nr, int *atomarray,
   qm->bSH            = ir->opts.bSH[grpnr];
   qm->bQED           = ir->opts.bQED[grpnr];
   qm->bMASH          = ir->opts.bMASH[grpnr];
-  qm->bSupermol      = ir->opts.bSupermol[grpnr];
+  qm->bSupermol      = ir->opts.bSupermol[grpnr]; 
   qm->omega          = ir->omega;
   qm->QEDdecay       = ir->QEDdecay;
   qm->QEDdecoherence = ir->QEDdecoherence;
@@ -540,6 +540,7 @@ void init_QMMMrec(t_commrec *cr,
   qr->QMMMscheme     = ir->QMMMscheme;
   qr->SHmethod       = ir->SHmethod;
   qr->QEDrepresentation = ir->QEDrepresentation;
+/*  qm->bSupermol      = ir->opts.bSupermol[grpnr]; */
   /* we take the possibility into account that a user has
    * defined more than one QM group:
    */

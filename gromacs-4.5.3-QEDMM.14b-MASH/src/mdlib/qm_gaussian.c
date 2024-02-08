@@ -6710,7 +6710,7 @@ real call_gaussian_QED(t_commrec *cr,  t_forcerec *fr,
 
   for (i=0;i<(qm->n_max-qm->n_min+1);i++){
 //    couplings[m*((qm->n_max)+1)+i] = -iprod(tdm,u)*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
-    couplings[m*((qm->n_max-qm->n_min)+1)+i] = -iprod(tdm,u)*sqrt(cavity_dispersion(qm->n_min+i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(qm->n_min+i)/L_au*m*L_au/((double) nmol));
+    couplings[m*((qm->n_max-qm->n_min)+1)+i] = -iprod(tdm,u)*sqrt(cavity_dispersion(qm->n_min+i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(qm->n_min+i)/L_au*qm->z[m]);
   }
   /* send couplings around */
   snew(send_couple_real,nmol*((qm->n_max-qm->n_min)+1));

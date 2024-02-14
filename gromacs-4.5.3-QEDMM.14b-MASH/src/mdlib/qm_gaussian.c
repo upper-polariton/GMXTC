@@ -2519,7 +2519,6 @@ real read_gaussian_output_QED(t_commrec *cr,rvec QMgrad_S1[],rvec MMgrad_S1[],
     sscanf(buf,"%f %f %f\n",&tdmZMM[i][0],&tdmZMM[i][1],&tdmZMM[i][2]);
 #endif
   }
-
   in_S0=fopen("S0.7","r");
   if (in_S0==NULL)
     gmx_fatal(FARGS,"Error reading Gaussian output");
@@ -4102,9 +4101,9 @@ if (doprop){
             /* diagonal term */
             fij =(betasq*MMgrad_S1[i][j]+(1-betasq)*MMgrad_S0[i][j]);
             /* off-diagonal term */
-            fij-= ab*tdmX[i][j]*u[0];
-            fij-= ab*tdmY[i][j]*u[1];
-            fij-= ab*tdmZ[i][j]*u[2];
+            fij-= ab*tdmXMM[i][j]*u[0];
+            fij-= ab*tdmYMM[i][j]*u[1];
+            fij-= ab*tdmZMM[i][j]*u[2];
             fij*=HARTREE_BOHR2MD;
           }
           /* supermolecules */
@@ -4112,9 +4111,9 @@ if (doprop){
             /* diagonal term */
             fij =(betasq*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])+M*(1-betasq)*MMgrad_S0[i][j]);
             /* off-diagonal term */
-            fij-= ab*tdmX[i][j]*u[0];
-            fij-= ab*tdmY[i][j]*u[1];
-            fij-= ab*tdmZ[i][j]*u[2];
+            fij-= ab*tdmXMM[i][j]*u[0];
+            fij-= ab*tdmYMM[i][j]*u[1];
+            fij-= ab*tdmZMM[i][j]*u[2];
             fij*=HARTREE_BOHR2MD/M;
           }
         }
@@ -4122,9 +4121,9 @@ if (doprop){
           /* diagonal term */
           fij =(betasq*MMgrad_S1[i][j]+(1-betasq)*MMgrad_S0[i][j]);
           /* off-diagonal term */
-          fij-= ab*tdmX[i][j]*u[0];
-          fij-= ab*tdmY[i][j]*u[1];
-          fij-= ab*tdmZ[i][j]*u[2];
+          fij-= ab*tdmXMM[i][j]*u[0];
+          fij-= ab*tdmYMM[i][j]*u[1];
+          fij-= ab*tdmZMM[i][j]*u[2];
           fij*=HARTREE_BOHR2MD;
         }
 	f[i+qm->nrQMatoms][j]      += creal(fij);
@@ -4213,9 +4212,9 @@ if (doprop){
               /* diagonal term */
               fij =(betasq*MMgrad_S1[i][j]+(1-betasq)*MMgrad_S0[i][j]);
               /* off-diagonal term, Because coeficients are real: ab = ba */
-              fij-= ab*tdmX[i][j]*u[0];
-              fij-= ab*tdmY[i][j]*u[1];
-              fij-= ab*tdmZ[i][j]*u[2];
+              fij-= ab*tdmXMM[i][j]*u[0];
+              fij-= ab*tdmYMM[i][j]*u[1];
+              fij-= ab*tdmZMM[i][j]*u[2];
               fij*=HARTREE_BOHR2MD*csq/totpop;
             }
             /* supermolecules */
@@ -4223,9 +4222,9 @@ if (doprop){
               /* diagonal term */
               fij =(betasq*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])+M*(1-betasq)*MMgrad_S0[i][j]);
               /* off-diagonal term, Because coeficients are real: ab = ba */
-              fij-= ab*tdmX[i][j]*u[0]*sqrt(M);
-              fij-= ab*tdmY[i][j]*u[1]*sqrt(M);
-              fij-= ab*tdmZ[i][j]*u[2]*sqrt(M);
+              fij-= ab*tdmXMM[i][j]*u[0]*sqrt(M);
+              fij-= ab*tdmYMM[i][j]*u[1]*sqrt(M);
+              fij-= ab*tdmZMM[i][j]*u[2]*sqrt(M);
               fij*=HARTREE_BOHR2MD*csq/totpop/M;
             }
           }
@@ -4233,9 +4232,9 @@ if (doprop){
             /* diagonal term */
             fij =(betasq*MMgrad_S1[i][j]+(1-betasq)*MMgrad_S0[i][j]);
             /* off-diagonal term, Because coeficients are real: ab = ba */
-            fij-= ab*tdmX[i][j]*u[0];
-            fij-= ab*tdmY[i][j]*u[1];
-            fij-= ab*tdmZ[i][j]*u[2];
+            fij-= ab*tdmXMM[i][j]*u[0];
+            fij-= ab*tdmYMM[i][j]*u[1];
+            fij-= ab*tdmZMM[i][j]*u[2];
 	    fij*=HARTREE_BOHR2MD*csq/totpop;
 	  }
 	      f[i+qm->nrQMatoms][j]      += creal(fij);
@@ -4335,12 +4334,12 @@ if (doprop){
                 fij = cpcq*betasq*(MMgrad_S1[i][j]-MMgrad_S0[i][j]);
                 fij+= conj(cpcq)*conj(betasq)*(MMgrad_S1[i][j]-MMgrad_S0[i][j]);
                 /* off-diagonal term */
-                fij-= cpcq*(bpaq+apbq)*tdmX[i][j]*u[0];
-                fij-= cpcq*(bpaq+apbq)*tdmY[i][j]*u[1];
-                fij-= cpcq*(bpaq+apbq)*tdmZ[i][j]*u[2];
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmX[i][j]*u[0];
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmY[i][j]*u[1];
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmZ[i][j]*u[2];
+                fij-= cpcq*(bpaq+apbq)*tdmXMM[i][j]*u[0];
+                fij-= cpcq*(bpaq+apbq)*tdmYMM[i][j]*u[1];
+                fij-= cpcq*(bpaq+apbq)*tdmZMM[i][j]*u[2];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmXMM[i][j]*u[0];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmYMM[i][j]*u[1];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmZMM[i][j]*u[2];
                 fij*=HARTREE_BOHR2MD/totpop;
               }
               /* supermolecules */
@@ -4349,12 +4348,12 @@ if (doprop){
                 fij = cpcq*betasq*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])-M*cpcq*betasq*MMgrad_S0[i][j];
                 fij+= conj(cpcq)*conj(betasq)*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])-M*conj(cpcq)*conj(betasq)*MMgrad_S0[i][j];
                 /* off-diagonal term */
-                fij-= cpcq*(bpaq+apbq)*tdmX[i][j]*u[0]*sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmY[i][j]*u[1]*sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmZ[i][j]*u[2]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmX[i][j]*u[0]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmY[i][j]*u[1]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmZ[i][j]*u[2]*sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmXMM[i][j]*u[0]*sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmYMM[i][j]*u[1]*sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmZMM[i][j]*u[2]*sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmXMM[i][j]*u[0]*sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmYMM[i][j]*u[1]*sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmZMM[i][j]*u[2]*sqrt(M);
                 fij*=HARTREE_BOHR2MD/totpop/M;
 	      }
 	    }
@@ -4363,12 +4362,12 @@ if (doprop){
               fij = cpcq*betasq*(MMgrad_S1[i][j]-MMgrad_S0[i][j]);
               fij+= conj(cpcq)*conj(betasq)*(MMgrad_S1[i][j]-MMgrad_S0[i][j]);
               /* off-diagonal term */
-              fij-= cpcq*(bpaq+apbq)*tdmX[i][j]*u[0];
-              fij-= cpcq*(bpaq+apbq)*tdmY[i][j]*u[1];
-              fij-= cpcq*(bpaq+apbq)*tdmZ[i][j]*u[2];
-              fij-= conj(cpcq)*(bqap+aqbp)*tdmX[i][j]*u[0];
-              fij-= conj(cpcq)*(bqap+aqbp)*tdmY[i][j]*u[1];
-              fij-= conj(cpcq)*(bqap+aqbp)*tdmZ[i][j]*u[2];
+              fij-= cpcq*(bpaq+apbq)*tdmXMM[i][j]*u[0];
+              fij-= cpcq*(bpaq+apbq)*tdmYMM[i][j]*u[1];
+              fij-= cpcq*(bpaq+apbq)*tdmZMM[i][j]*u[2];
+              fij-= conj(cpcq)*(bqap+aqbp)*tdmXMM[i][j]*u[0];
+              fij-= conj(cpcq)*(bqap+aqbp)*tdmYMM[i][j]*u[1];
+              fij-= conj(cpcq)*(bqap+aqbp)*tdmZMM[i][j]*u[2];
               fij*=HARTREE_BOHR2MD/totpop;
             }
             f[i+qm->nrQMatoms][j]      += creal(fij);
@@ -4904,9 +4903,9 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
             /* diagonal term */
             fij =(betasq*MMgrad_S1[i][j]+(1-betasq)*MMgrad_S0[i][j]);
             /* off-diagonal term */
-            fij-= ab*tdmX[i][j]*u[0];
-            fij-= ab*tdmY[i][j]*u[1];
-            fij-= ab*tdmZ[i][j]*u[2];
+            fij-= ab*tdmXMM[i][j]*u[0];
+            fij-= ab*tdmYMM[i][j]*u[1];
+            fij-= ab*tdmZMM[i][j]*u[2];
             fij*=HARTREE_BOHR2MD;
           }
           /* supermolecules */
@@ -4914,9 +4913,9 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
             /* diagonal term */
             fij =(betasq*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])+M*(1-betasq)*MMgrad_S0[i][j]);
             /* off-diagonal term */
-            fij-= ab*tdmX[i][j]*u[0];
-            fij-= ab*tdmY[i][j]*u[1];
-            fij-= ab*tdmZ[i][j]*u[2];
+            fij-= ab*tdmXMM[i][j]*u[0];
+            fij-= ab*tdmYMM[i][j]*u[1];
+            fij-= ab*tdmZMM[i][j]*u[2];
             fij*=HARTREE_BOHR2MD/M;
           }
         }
@@ -4924,9 +4923,9 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
           /* diagonal term */
           fij =(betasq*MMgrad_S1[i][j]+(1-betasq)*MMgrad_S0[i][j]);
           /* off-diagonal term */
-          fij-= ab*tdmX[i][j]*u[0];
-          fij-= ab*tdmY[i][j]*u[1];
-          fij-= ab*tdmZ[i][j]*u[2];
+          fij-= ab*tdmXMM[i][j]*u[0];
+          fij-= ab*tdmYMM[i][j]*u[1];
+          fij-= ab*tdmZMM[i][j]*u[2];
           fij*=HARTREE_BOHR2MD;
         }
 	f[i+qm->nrQMatoms][j]      += creal(fij);
@@ -5013,9 +5012,9 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
               /* diagonal term */
               fij =(betasq*MMgrad_S1[i][j]+(1-betasq)*MMgrad_S0[i][j]);
               /* off-diagonal term, Because coeficients are real: ab = ba */
-              fij-= ab*tdmX[i][j]*u[0];
-              fij-= ab*tdmY[i][j]*u[1];
-              fij-= ab*tdmZ[i][j]*u[2];
+              fij-= ab*tdmXMM[i][j]*u[0];
+              fij-= ab*tdmYMM[i][j]*u[1];
+              fij-= ab*tdmZMM[i][j]*u[2];
               fij*=HARTREE_BOHR2MD*csq/totpop;
             }
             /* supermolecules */
@@ -5023,9 +5022,9 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
               /* diagonal term */
               fij =(betasq*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])+M*(1-betasq)*MMgrad_S0[i][j]);
               /* off-diagonal term, Because coeficients are real: ab = ba */
-              fij-= ab*tdmX[i][j]*u[0]*sqrt(M);
-              fij-= ab*tdmY[i][j]*u[1]*sqrt(M);
-              fij-= ab*tdmZ[i][j]*u[2]*sqrt(M);
+              fij-= ab*tdmXMM[i][j]*u[0]*sqrt(M);
+              fij-= ab*tdmYMM[i][j]*u[1]*sqrt(M);
+              fij-= ab*tdmZMM[i][j]*u[2]*sqrt(M);
               fij*=HARTREE_BOHR2MD*csq/totpop/M;
             }
           }
@@ -5033,9 +5032,9 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
             /* diagonal term */
             fij =(betasq*MMgrad_S1[i][j]+(1-betasq)*MMgrad_S0[i][j]);
             /* off-diagonal term, Because coeficients are real: ab = ba */
-            fij-= ab*tdmX[i][j]*u[0];
-            fij-= ab*tdmY[i][j]*u[1];
-            fij-= ab*tdmZ[i][j]*u[2];
+            fij-= ab*tdmXMM[i][j]*u[0];
+            fij-= ab*tdmYMM[i][j]*u[1];
+            fij-= ab*tdmZMM[i][j]*u[2];
 	    fij*=HARTREE_BOHR2MD*csq/totpop;
 	  }
 	      f[i+qm->nrQMatoms][j]      += creal(fij);
@@ -5135,12 +5134,12 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
                 fij = cpcq*betasq*(MMgrad_S1[i][j]-MMgrad_S0[i][j]);
                 fij+= conj(cpcq)*conj(betasq)*(MMgrad_S1[i][j]-MMgrad_S0[i][j]);
                 /* off-diagonal term */
-                fij-= cpcq*(bpaq+apbq)*tdmX[i][j]*u[0];
-                fij-= cpcq*(bpaq+apbq)*tdmY[i][j]*u[1];
-                fij-= cpcq*(bpaq+apbq)*tdmZ[i][j]*u[2];
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmX[i][j]*u[0];
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmY[i][j]*u[1];
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmZ[i][j]*u[2];
+                fij-= cpcq*(bpaq+apbq)*tdmXMM[i][j]*u[0];
+                fij-= cpcq*(bpaq+apbq)*tdmYMM[i][j]*u[1];
+                fij-= cpcq*(bpaq+apbq)*tdmZMM[i][j]*u[2];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmXMM[i][j]*u[0];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmYMM[i][j]*u[1];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmZMM[i][j]*u[2];
                 fij*=HARTREE_BOHR2MD/totpop;
               }
               /* supermolecules */
@@ -5149,12 +5148,12 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
                 fij = cpcq*betasq*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])-M*cpcq*betasq*MMgrad_S0[i][j];
                 fij+= conj(cpcq)*conj(betasq)*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])-M*conj(cpcq)*conj(betasq)*MMgrad_S0[i][j];
                 /* off-diagonal term */
-                fij-= cpcq*(bpaq+apbq)*tdmX[i][j]*u[0]*sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmY[i][j]*u[1]*sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmZ[i][j]*u[2]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmX[i][j]*u[0]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmY[i][j]*u[1]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmZ[i][j]*u[2]*sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmXMM[i][j]*u[0]*sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmYMM[i][j]*u[1]*sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmZMM[i][j]*u[2]*sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmXMM[i][j]*u[0]*sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmYMM[i][j]*u[1]*sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmZMM[i][j]*u[2]*sqrt(M);
                 fij*=HARTREE_BOHR2MD/totpop/M;
 	      }
 	    }
@@ -5163,12 +5162,12 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
               fij = cpcq*betasq*(MMgrad_S1[i][j]-MMgrad_S0[i][j]);
               fij+= conj(cpcq)*conj(betasq)*(MMgrad_S1[i][j]-MMgrad_S0[i][j]);
               /* off-diagonal term */
-              fij-= cpcq*(bpaq+apbq)*tdmX[i][j]*u[0];
-              fij-= cpcq*(bpaq+apbq)*tdmY[i][j]*u[1];
-              fij-= cpcq*(bpaq+apbq)*tdmZ[i][j]*u[2];
-              fij-= conj(cpcq)*(bqap+aqbp)*tdmX[i][j]*u[0];
-              fij-= conj(cpcq)*(bqap+aqbp)*tdmY[i][j]*u[1];
-              fij-= conj(cpcq)*(bqap+aqbp)*tdmZ[i][j]*u[2];
+              fij-= cpcq*(bpaq+apbq)*tdmXMM[i][j]*u[0];
+              fij-= cpcq*(bpaq+apbq)*tdmYMM[i][j]*u[1];
+              fij-= cpcq*(bpaq+apbq)*tdmZMM[i][j]*u[2];
+              fij-= conj(cpcq)*(bqap+aqbp)*tdmXMM[i][j]*u[0];
+              fij-= conj(cpcq)*(bqap+aqbp)*tdmYMM[i][j]*u[1];
+              fij-= conj(cpcq)*(bqap+aqbp)*tdmZMM[i][j]*u[2];
               fij*=HARTREE_BOHR2MD/totpop;
             }
             f[i+qm->nrQMatoms][j]      += creal(fij);
@@ -5593,12 +5592,12 @@ double do_diabatic_non_herm(t_commrec *cr,  t_forcerec *fr,
             for(p=nmol;p<ndim;p++){
               cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
               cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m]);
-              fij -= cmcp*tdmX[i][j]*u[0];
-              fij -= cmcp*tdmY[i][j]*u[1];
-              fij -= cmcp*tdmZ[i][j]*u[2];
-              fij -= conj(cmcp)*tdmX[i][j]*u[0];
-              fij -= conj(cmcp)*tdmY[i][j]*u[1];
-              fij -= conj(cmcp)*tdmZ[i][j]*u[2];
+              fij -= cmcp*tdmXMM[i][j]*u[0];
+              fij -= cmcp*tdmYMM[i][j]*u[1];
+              fij -= cmcp*tdmZMM[i][j]*u[2];
+              fij -= conj(cmcp)*tdmXMM[i][j]*u[0];
+              fij -= conj(cmcp)*tdmYMM[i][j]*u[1];
+              fij -= conj(cmcp)*tdmZMM[i][j]*u[2];
             }
             fij*=HARTREE_BOHR2MD/totpop;
           }
@@ -5609,12 +5608,12 @@ double do_diabatic_non_herm(t_commrec *cr,  t_forcerec *fr,
             for(p=nmol;p<ndim;p++){
               cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
               cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m])*sqrt(M);
-              fij -= cmcp*tdmX[i][j]*u[0];
-              fij -= cmcp*tdmY[i][j]*u[1];
-              fij -= cmcp*tdmZ[i][j]*u[2];
-              fij -= conj(cmcp)*tdmX[i][j]*u[0];
-              fij -= conj(cmcp)*tdmY[i][j]*u[1];
-              fij -= conj(cmcp)*tdmZ[i][j]*u[2];
+              fij -= cmcp*tdmXMM[i][j]*u[0];
+              fij -= cmcp*tdmYMM[i][j]*u[1];
+              fij -= cmcp*tdmZMM[i][j]*u[2];
+              fij -= conj(cmcp)*tdmXMM[i][j]*u[0];
+              fij -= conj(cmcp)*tdmYMM[i][j]*u[1];
+              fij -= conj(cmcp)*tdmZMM[i][j]*u[2];
             }
             fij*=HARTREE_BOHR2MD/totpop/M;
           }
@@ -5624,12 +5623,12 @@ double do_diabatic_non_herm(t_commrec *cr,  t_forcerec *fr,
           for(p=nmol;p<ndim;p++){
             cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
             cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m]);
-            fij -= cmcp*tdmX[i][j]*u[0];
-            fij -= cmcp*tdmY[i][j]*u[1];
-            fij -= cmcp*tdmZ[i][j]*u[2];
-            fij -= conj(cmcp)*tdmX[i][j]*u[0];
-            fij -= conj(cmcp)*tdmY[i][j]*u[1];
-            fij -= conj(cmcp)*tdmZ[i][j]*u[2];
+            fij -= cmcp*tdmXMM[i][j]*u[0];
+            fij -= cmcp*tdmYMM[i][j]*u[1];
+            fij -= cmcp*tdmZMM[i][j]*u[2];
+            fij -= conj(cmcp)*tdmXMM[i][j]*u[0];
+            fij -= conj(cmcp)*tdmYMM[i][j]*u[1];
+            fij -= conj(cmcp)*tdmZMM[i][j]*u[2];
           }
           fij*=HARTREE_BOHR2MD/totpop;
         }
@@ -5938,12 +5937,12 @@ double do_diabatic(t_commrec *cr,  t_forcerec *fr,
             for(p=nmol;p<ndim;p++){
               cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
               cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m]);
-              fij -= cmcp*tdmX[i][j]*u[0];
-              fij -= cmcp*tdmY[i][j]*u[1];
-              fij -= cmcp*tdmZ[i][j]*u[2];
-              fij -= conj(cmcp)*tdmX[i][j]*u[0];
-              fij -= conj(cmcp)*tdmY[i][j]*u[1];
-              fij -= conj(cmcp)*tdmZ[i][j]*u[2];
+              fij -= cmcp*tdmXMM[i][j]*u[0];
+              fij -= cmcp*tdmYMM[i][j]*u[1];
+              fij -= cmcp*tdmZMM[i][j]*u[2];
+              fij -= conj(cmcp)*tdmXMM[i][j]*u[0];
+              fij -= conj(cmcp)*tdmYMM[i][j]*u[1];
+              fij -= conj(cmcp)*tdmZMM[i][j]*u[2];
             }
             fij*=HARTREE_BOHR2MD/totpop;
           }
@@ -5954,12 +5953,12 @@ double do_diabatic(t_commrec *cr,  t_forcerec *fr,
             for(p=nmol;p<ndim;p++){
               cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
               cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m])*sqrt(M);
-              fij -= cmcp*tdmX[i][j]*u[0];
-              fij -= cmcp*tdmY[i][j]*u[1];
-              fij -= cmcp*tdmZ[i][j]*u[2];
-              fij -= conj(cmcp)*tdmX[i][j]*u[0];
-              fij -= conj(cmcp)*tdmY[i][j]*u[1];
-              fij -= conj(cmcp)*tdmZ[i][j]*u[2];
+              fij -= cmcp*tdmXMM[i][j]*u[0];
+              fij -= cmcp*tdmYMM[i][j]*u[1];
+              fij -= cmcp*tdmZMM[i][j]*u[2];
+              fij -= conj(cmcp)*tdmXMM[i][j]*u[0];
+              fij -= conj(cmcp)*tdmYMM[i][j]*u[1];
+              fij -= conj(cmcp)*tdmZMM[i][j]*u[2];
             }
             fij*=HARTREE_BOHR2MD/totpop/M;
           }
@@ -5969,12 +5968,12 @@ double do_diabatic(t_commrec *cr,  t_forcerec *fr,
           for(p=nmol;p<ndim;p++){
             cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
             cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m]);
-            fij -= cmcp*tdmX[i][j]*u[0];
-            fij -= cmcp*tdmY[i][j]*u[1];
-            fij -= cmcp*tdmZ[i][j]*u[2];
-            fij -= conj(cmcp)*tdmX[i][j]*u[0];
-            fij -= conj(cmcp)*tdmY[i][j]*u[1];
-            fij -= conj(cmcp)*tdmZ[i][j]*u[2];
+            fij -= cmcp*tdmXMM[i][j]*u[0];
+            fij -= cmcp*tdmYMM[i][j]*u[1];
+            fij -= cmcp*tdmZMM[i][j]*u[2];
+            fij -= conj(cmcp)*tdmXMM[i][j]*u[0];
+            fij -= conj(cmcp)*tdmYMM[i][j]*u[1];
+            fij -= conj(cmcp)*tdmZMM[i][j]*u[2];
           }
           fij*=HARTREE_BOHR2MD/totpop;
         }
@@ -6252,9 +6251,9 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
             /* diagonal term */
             fij =(betasq*MMgrad_S1[i][j]+(1-betasq)*MMgrad_S0[i][j]);
             /* off-diagonal term */
-            fij-= ab*tdmX[i][j]*u[0];
-            fij-= ab*tdmY[i][j]*u[1];
-            fij-= ab*tdmZ[i][j]*u[2];
+            fij-= ab*tdmXMM[i][j]*u[0];
+            fij-= ab*tdmYMM[i][j]*u[1];
+            fij-= ab*tdmZMM[i][j]*u[2];
             fij*=HARTREE_BOHR2MD;
           }
           /* supermolecules */
@@ -6262,9 +6261,9 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
             /* diagonal term */
             fij =(betasq*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])+M*(1-betasq)*MMgrad_S0[i][j]);
             /* off-diagonal term */
-            fij-= ab*tdmX[i][j]*u[0];
-            fij-= ab*tdmY[i][j]*u[1];
-            fij-= ab*tdmZ[i][j]*u[2];
+            fij-= ab*tdmXMM[i][j]*u[0];
+            fij-= ab*tdmYMM[i][j]*u[1];
+            fij-= ab*tdmZMM[i][j]*u[2];
             fij*=HARTREE_BOHR2MD/M;
           }
         }
@@ -6272,9 +6271,9 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
           /* diagonal term */
           fij =(betasq*MMgrad_S1[i][j]+(1-betasq)*MMgrad_S0[i][j]);
           /* off-diagonal term */
-          fij-= ab*tdmX[i][j]*u[0];
-          fij-= ab*tdmY[i][j]*u[1];
-          fij-= ab*tdmZ[i][j]*u[2];
+          fij-= ab*tdmXMM[i][j]*u[0];
+          fij-= ab*tdmYMM[i][j]*u[1];
+          fij-= ab*tdmZMM[i][j]*u[2];
           fij*=HARTREE_BOHR2MD;
         }
         f[i+qm->nrQMatoms][j]      += creal(fij);
@@ -6361,33 +6360,33 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
               /* diagonal term */
               fij =(betasq*MMgrad_S1[i][j]+(1-betasq)*MMgrad_S0[i][j]);
               /* off-diagonal term, Because coeficients are real: ab = ba */
-              fij-= ab*tdmX[i][j]*u[0];
-              fij-= ab*tdmY[i][j]*u[1];
-              fij-= ab*tdmZ[i][j]*u[2];
-              fij*=HARTREE_BOHR2MD*csq;
+              fij-= ab*tdmXMM[i][j]*u[0];
+              fij-= ab*tdmYMM[i][j]*u[1];
+              fij-= ab*tdmZMM[i][j]*u[2];
+	      fij*=HARTREE_BOHR2MD*csq;
             }
             /* supermolecules */
             else{
               /* diagonal term */
               fij =(betasq*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])+M*(1-betasq)*MMgrad_S0[i][j]);
               /* off-diagonal term, Because coeficients are real: ab = ba */
-              fij-= ab*tdmX[i][j]*u[0]*sqrt(M);
-              fij-= ab*tdmY[i][j]*u[1]*sqrt(M);
-              fij-= ab*tdmZ[i][j]*u[2]*sqrt(M);
-              fij*=HARTREE_BOHR2MD*csq/M;
+              fij-= ab*tdmXMM[i][j]*u[0]*sqrt(M);
+              fij-= ab*tdmYMM[i][j]*u[1]*sqrt(M);
+              fij-= ab*tdmZMM[i][j]*u[2]*sqrt(M);
+	      fij*=HARTREE_BOHR2MD*csq/M;
             }
           }
           else{
             /* diagonal term */
             fij =(betasq*MMgrad_S1[i][j]+(1-betasq)*MMgrad_S0[i][j]);
             /* off-diagonal term, Because coeficients are real: ab = ba */
-            fij-= ab*tdmX[i][j]*u[0];
-            fij-= ab*tdmY[i][j]*u[1];
-            fij-= ab*tdmZ[i][j]*u[2];
+            fij-= ab*tdmXMM[i][j]*u[0];
+            fij-= ab*tdmYMM[i][j]*u[1];
+            fij-= ab*tdmZMM[i][j]*u[2];
             fij*=HARTREE_BOHR2MD*csq;
           }
-              f[i+qm->nrQMatoms][j]      += creal(fij);
-              fshift[i+qm->nrQMatoms][j] += creal(fij);
+          f[i+qm->nrQMatoms][j]      += creal(fij);
+	  fshift[i+qm->nrQMatoms][j] += creal(fij);
         }
       }
       /* now off-diagonals . Normalized */
@@ -6482,12 +6481,12 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
                 fij = cpcq*betasq*(MMgrad_S1[i][j]-MMgrad_S0[i][j]);
                 fij+= conj(cpcq)*conj(betasq)*(MMgrad_S1[i][j]-MMgrad_S0[i][j]);
                 /* off-diagonal term */
-                fij-= cpcq*(bpaq+apbq)*tdmX[i][j]*u[0];
-                fij-= cpcq*(bpaq+apbq)*tdmY[i][j]*u[1];
-                fij-= cpcq*(bpaq+apbq)*tdmZ[i][j]*u[2];
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmX[i][j]*u[0];
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmY[i][j]*u[1];
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmZ[i][j]*u[2];
+                fij-= cpcq*(bpaq+apbq)*tdmXMM[i][j]*u[0];
+                fij-= cpcq*(bpaq+apbq)*tdmYMM[i][j]*u[1];
+                fij-= cpcq*(bpaq+apbq)*tdmZMM[i][j]*u[2];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmXMM[i][j]*u[0];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmYMM[i][j]*u[1];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmZMM[i][j]*u[2];
                 fij*=HARTREE_BOHR2MD;
               }
               /* supermolecules */
@@ -6496,12 +6495,12 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
                 fij = cpcq*betasq*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])-M*cpcq*betasq*MMgrad_S0[i][j];
                 fij+= conj(cpcq)*conj(betasq)*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])-M*conj(cpcq)*conj(betasq)*MMgrad_S0[i][j];
                 /* off-diagonal term */
-                fij-= cpcq*(bpaq+apbq)*tdmX[i][j]*u[0]*sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmY[i][j]*u[1]*sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmZ[i][j]*u[2]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmX[i][j]*u[0]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmY[i][j]*u[1]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmZ[i][j]*u[2]*sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmXMM[i][j]*u[0]*sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmYMM[i][j]*u[1]*sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmZMM[i][j]*u[2]*sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmXMM[i][j]*u[0]*sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmYMM[i][j]*u[1]*sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmZMM[i][j]*u[2]*sqrt(M);
                 fij*=HARTREE_BOHR2MD/M;
 	      }
 	    }
@@ -6510,12 +6509,12 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
               fij = cpcq*betasq*(MMgrad_S1[i][j]-MMgrad_S0[i][j]);
               fij+= conj(cpcq)*conj(betasq)*(MMgrad_S1[i][j]-MMgrad_S0[i][j]);
               /* off-diagonal term */
-              fij-= cpcq*(bpaq+apbq)*tdmX[i][j]*u[0];
-              fij-= cpcq*(bpaq+apbq)*tdmY[i][j]*u[1];
-              fij-= cpcq*(bpaq+apbq)*tdmZ[i][j]*u[2];
-              fij-= conj(cpcq)*(bqap+aqbp)*tdmX[i][j]*u[0];
-              fij-= conj(cpcq)*(bqap+aqbp)*tdmY[i][j]*u[1];
-              fij-= conj(cpcq)*(bqap+aqbp)*tdmZ[i][j]*u[2];
+              fij-= cpcq*(bpaq+apbq)*tdmXMM[i][j]*u[0];
+              fij-= cpcq*(bpaq+apbq)*tdmYMM[i][j]*u[1];
+              fij-= cpcq*(bpaq+apbq)*tdmZMM[i][j]*u[2];
+              fij-= conj(cpcq)*(bqap+aqbp)*tdmXMM[i][j]*u[0];
+              fij-= conj(cpcq)*(bqap+aqbp)*tdmYMM[i][j]*u[1];
+              fij-= conj(cpcq)*(bqap+aqbp)*tdmZMM[i][j]*u[2];
               fij*=HARTREE_BOHR2MD;
             }
             f[i+qm->nrQMatoms][j]      += creal(fij);

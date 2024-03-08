@@ -1,5 +1,5 @@
-§/*
- * 
+/*
+ *
  *                This source code is part of
  * 
  *                 G   R   O   M   A   C   S
@@ -4581,7 +4581,7 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
      */
     if(dohop[0]==nmol){
       fprintf(stderr,"hop from %d to %d energetically allowed, adjusting velocities\n",
-	      qm->polariton,hopto[0]);   
+	      qm->polariton,hopto[0]);
       qm->polariton = state[0] = hopto[0];
     }   
     else{

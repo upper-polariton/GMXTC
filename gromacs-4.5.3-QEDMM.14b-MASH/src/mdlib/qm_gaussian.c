@@ -1,4 +1,4 @@
-/*
+§/*
  * 
  *                This source code is part of
  * 
@@ -4581,7 +4581,7 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
      */
     if(dohop[0]==nmol){
       fprintf(stderr,"hop from %d to %d energetically allowed, adjusting velocities\n",
-	      qm->polariton,hopto);   
+	      qm->polariton,hopto[0]);   
       qm->polariton = state[0] = hopto[0];
     }   
     else{
@@ -5099,7 +5099,10 @@ double do_diabatic_non_herm(t_commrec *cr,  t_forcerec *fr,
         fij = csq*QMgrad_S1[i][j]+(totpop-csq)*QMgrad_S0[i][j];
         for(p=nmol;p<ndim;p++){
           cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
+            /* replace the m*L_au by the actual position z[m]
+             */
 	      cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(p-nmol+qm->n_min)/L_au*m*L_au/((double) nmol));
+            /* safe some cycles by 2Re() */
           fij -= cmcp*tdmX[i][j]*u[0];
           fij -= cmcp*tdmY[i][j]*u[1];
           fij -= cmcp*tdmZ[i][j]*u[2];
@@ -5190,11 +5193,17 @@ double do_diabatic(t_commrec *cr,  t_forcerec *fr,
   
   /* information on field, was already calcualted above...*/
   E0_norm_sq = iprod(qm->E,qm->E); // Square of the magitud of the E-field at k=0
-  V0_2EP = qm->omega/(E0_norm_sq); //2*Epsilon0*V_cav at k=0 (in a.u.)
-  u[0]=qm->E[0]/sqrt(E0_norm_sq);
-  u[1]=qm->E[1]/sqrt(E0_norm_sq);
-  u[2]=qm->E[2]/sqrt(E0_norm_sq);
-
+  if (E0_norm_sq>0.000000000){
+    V0_2EP = qm->omega/(E0_norm_sq); //2*Epsilon0*V_cav at k=0 (in a.u.)
+    u[0]=qm->E[0]/sqrt(E0_norm_sq);
+    u[1]=qm->E[1]/sqrt(E0_norm_sq);
+    u[2]=qm->E[2]/sqrt(E0_norm_sq);
+  } 
+  else {
+      /* we set V to 1, even if it sbould be infinite, but simply put u, the vector along whcih the field is directed to zero */
+    V0_2EP=1;
+    u[0]=u[1]=u[2]=0;
+  }
   /* silly array to communicate the courrent state*/
   snew(state,1);
 

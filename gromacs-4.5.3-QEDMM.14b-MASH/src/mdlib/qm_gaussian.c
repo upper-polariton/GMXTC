@@ -3701,6 +3701,7 @@ double do_hybrid_non_herm(t_commrec *cr,  t_forcerec *fr,
    */
   E0_norm_sq = iprod(qm->E,qm->E); // Square of the magitud of the E-field at k=0
   V0_2EP = qm->omega/(E0_norm_sq); //2*Epsilon0*V_cav at k=0 (in a.u.)
+  /*Important: As E0_norm_sq = E0_norm_sq_supermol/M, then u[i]_supermol=E[i]_supermol/sqrt(E0_norm_sq)=E[i]*sqrt(M)/{sqrt(E0_norm_sq_supermol/M)}=E[i]/sqrt(E0_norm_sq_supermol)*M */
   u[0]=qm->E[0]/sqrt(E0_norm_sq);
   u[1]=qm->E[1]/sqrt(E0_norm_sq);
   u[2]=qm->E[2]/sqrt(E0_norm_sq);
@@ -4040,22 +4041,8 @@ if (doprop){
     for (i=0;i<(qm->n_max-qm->n_min)+1;i++){
       a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*qm->z[m]);
     }
-    if (qm->bSupermol){
-      /* normal molecules */
-      if (m<(qm->n_norm)){
-        ab = conj(eigvec[p*ndim+m])*a_sump;
-        ab += conj(a_sump)*eigvec[p*ndim+m];
-      }
-      /* supermolecules */
-      else{
-        ab = conj(eigvec[p*ndim+m])*a_sump*sqrt(M);
-        ab += conj(a_sump)*eigvec[p*ndim+m]*sqrt(M);
-      }
-    }
-    else{
-      ab = conj(eigvec[p*ndim+m])*a_sump; //actually sum of alphas * beta_j
-      ab += conj(a_sump)*eigvec[p*ndim+m];
-    }
+    ab = conj(eigvec[p*ndim+m])*a_sump;
+    ab += conj(a_sump)*eigvec[p*ndim+m];
     for(i=0;i<qm->nrQMatoms;i++){
       for(j=0;j<DIM;j++){
 	if (qm->bSupermol){
@@ -4185,9 +4172,9 @@ if (doprop){
 	      /* diagonal term */
               fij =(betasq*(QMgrad_S1[i][j]+(M-1)*QMgrad_S0[i][j])+M*(1-betasq)*QMgrad_S0[i][j]);
               /* off-diagonal term, Because coeficients are real: ab = ba */
-              fij-= ab*tdmX[i][j]*u[0]*sqrt(M);
-              fij-= ab*tdmY[i][j]*u[1]*sqrt(M);
-              fij-= ab*tdmZ[i][j]*u[2]*sqrt(M);
+              fij-= ab*tdmX[i][j]*u[0]/sqrt(M);
+              fij-= ab*tdmY[i][j]*u[1]/sqrt(M);
+              fij-= ab*tdmZ[i][j]*u[2]/sqrt(M);
               fij*=HARTREE_BOHR2MD*csq/totpop/M;
 	    }
 	  }
@@ -4222,9 +4209,9 @@ if (doprop){
               /* diagonal term */
               fij =(betasq*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])+M*(1-betasq)*MMgrad_S0[i][j]);
               /* off-diagonal term, Because coeficients are real: ab = ba */
-              fij-= ab*tdmXMM[i][j]*u[0]*sqrt(M);
-              fij-= ab*tdmYMM[i][j]*u[1]*sqrt(M);
-              fij-= ab*tdmZMM[i][j]*u[2]*sqrt(M);
+              fij-= ab*tdmXMM[i][j]*u[0]/sqrt(M);
+              fij-= ab*tdmYMM[i][j]*u[1]/sqrt(M);
+              fij-= ab*tdmZMM[i][j]*u[2]/sqrt(M);
               fij*=HARTREE_BOHR2MD*csq/totpop/M;
             }
           }
@@ -4299,12 +4286,12 @@ if (doprop){
                 fij = cpcq*betasq*(QMgrad_S1[i][j]+(M-1)*QMgrad_S0[i][j])-M*cpcq*betasq*QMgrad_S0[i][j];
                 fij+= conj(cpcq)*conj(betasq)*(QMgrad_S1[i][j]+(M-1)*QMgrad_S0[i][j])-M*conj(cpcq)*conj(betasq)*QMgrad_S0[i][j];
 	        /* off-diagonal term */
-                fij-= cpcq*(bpaq+apbq)*tdmX[i][j]*u[0]*sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmY[i][j]*u[1]*sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmZ[i][j]*u[2]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmX[i][j]*u[0]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmY[i][j]*u[1]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmZ[i][j]*u[2]*sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmX[i][j]*u[0]/sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmY[i][j]*u[1]/sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmZ[i][j]*u[2]/sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmX[i][j]*u[0]/sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmY[i][j]*u[1]/sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmZ[i][j]*u[2]/sqrt(M);
                 fij*=HARTREE_BOHR2MD/totpop/M;
 	      }
 	    }
@@ -4348,12 +4335,12 @@ if (doprop){
                 fij = cpcq*betasq*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])-M*cpcq*betasq*MMgrad_S0[i][j];
                 fij+= conj(cpcq)*conj(betasq)*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])-M*conj(cpcq)*conj(betasq)*MMgrad_S0[i][j];
                 /* off-diagonal term */
-                fij-= cpcq*(bpaq+apbq)*tdmXMM[i][j]*u[0]*sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmYMM[i][j]*u[1]*sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmZMM[i][j]*u[2]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmXMM[i][j]*u[0]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmYMM[i][j]*u[1]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmZMM[i][j]*u[2]*sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmXMM[i][j]*u[0]/sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmYMM[i][j]*u[1]/sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmZMM[i][j]*u[2]/sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmXMM[i][j]*u[0]/sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmYMM[i][j]*u[1]/sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmZMM[i][j]*u[2]/sqrt(M);
                 fij*=HARTREE_BOHR2MD/totpop/M;
 	      }
 	    }
@@ -4518,6 +4505,7 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
    */
   E0_norm_sq = iprod(qm->E,qm->E); // Square of the magitud of the E-field at k=0
   V0_2EP = qm->omega/(E0_norm_sq); //2*Epsilon0*V_cav at k=0 (in a.u.)
+  /*Important: As E0_norm_sq = E0_norm_sq_supermol/M, then u[i]_supermol=E[i]_supermol/sqrt(E0_norm_sq)=E[i]*sqrt(M)/{sqrt(E0_norm_sq_supermol/M)}=E[i]/sqrt(E0_norm_sq_supermol)*M */
   u[0]=qm->E[0]/sqrt(E0_norm_sq);
   u[1]=qm->E[1]/sqrt(E0_norm_sq);
   u[2]=qm->E[2]/sqrt(E0_norm_sq);
@@ -4842,22 +4830,8 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
     for (i=0;i<(qm->n_max)+1;i++){
       a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion((i+qm->n_min),qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*qm->z[m]);
     }
-    if (qm->bSupermol){
-      /* normal molecules */
-      if (m<(qm->n_norm)){
-        ab = conj(eigvec[p*ndim+m])*a_sump;
-        ab += conj(a_sump)*eigvec[p*ndim+m];
-      }
-      /* supermolecules */
-      else{
-        ab = conj(eigvec[p*ndim+m])*a_sump*sqrt(M);
-        ab += conj(a_sump)*eigvec[p*ndim+m]*sqrt(M);
-      }
-    }
-    else{
-      ab = conj(eigvec[p*ndim+m])*a_sump; //actually sum of alphas * beta_j
-      ab += conj(a_sump)*eigvec[p*ndim+m];
-    }
+    ab = conj(eigvec[p*ndim+m])*a_sump;
+    ab += conj(a_sump)*eigvec[p*ndim+m];
     for(i=0;i<qm->nrQMatoms;i++){
       for(j=0;j<DIM;j++){
 	if (qm->bSupermol){
@@ -4985,9 +4959,9 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
 	      /* diagonal term */
               fij =(betasq*(QMgrad_S1[i][j]+(M-1)*QMgrad_S0[i][j])+M*(1-betasq)*QMgrad_S0[i][j]);
               /* off-diagonal term, Because coeficients are real: ab = ba */
-              fij-= ab*tdmX[i][j]*u[0]*sqrt(M);
-              fij-= ab*tdmY[i][j]*u[1]*sqrt(M);
-              fij-= ab*tdmZ[i][j]*u[2]*sqrt(M);
+              fij-= ab*tdmX[i][j]*u[0]/sqrt(M);
+              fij-= ab*tdmY[i][j]*u[1]/sqrt(M);
+              fij-= ab*tdmZ[i][j]*u[2]/sqrt(M);
               fij*=HARTREE_BOHR2MD*csq/totpop/M;
 	    }
 	  }
@@ -5022,9 +4996,9 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
               /* diagonal term */
               fij =(betasq*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])+M*(1-betasq)*MMgrad_S0[i][j]);
               /* off-diagonal term, Because coeficients are real: ab = ba */
-              fij-= ab*tdmXMM[i][j]*u[0]*sqrt(M);
-              fij-= ab*tdmYMM[i][j]*u[1]*sqrt(M);
-              fij-= ab*tdmZMM[i][j]*u[2]*sqrt(M);
+              fij-= ab*tdmXMM[i][j]*u[0]/sqrt(M);
+              fij-= ab*tdmYMM[i][j]*u[1]/sqrt(M);
+              fij-= ab*tdmZMM[i][j]*u[2]/sqrt(M);
               fij*=HARTREE_BOHR2MD*csq/totpop/M;
             }
           }
@@ -5099,12 +5073,12 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
                 fij = cpcq*betasq*(QMgrad_S1[i][j]+(M-1)*QMgrad_S0[i][j])-M*cpcq*betasq*QMgrad_S0[i][j];
                 fij+= conj(cpcq)*conj(betasq)*(QMgrad_S1[i][j]+(M-1)*QMgrad_S0[i][j])-M*conj(cpcq)*conj(betasq)*QMgrad_S0[i][j];
 	        /* off-diagonal term */
-                fij-= cpcq*(bpaq+apbq)*tdmX[i][j]*u[0]*sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmY[i][j]*u[1]*sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmZ[i][j]*u[2]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmX[i][j]*u[0]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmY[i][j]*u[1]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmZ[i][j]*u[2]*sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmX[i][j]*u[0]/sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmY[i][j]*u[1]/sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmZ[i][j]*u[2]/sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmX[i][j]*u[0]/sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmY[i][j]*u[1]/sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmZ[i][j]*u[2]/sqrt(M);
                 fij*=HARTREE_BOHR2MD/totpop/M;
 	      }
 	    }
@@ -5148,12 +5122,12 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
                 fij = cpcq*betasq*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])-M*cpcq*betasq*MMgrad_S0[i][j];
                 fij+= conj(cpcq)*conj(betasq)*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])-M*conj(cpcq)*conj(betasq)*MMgrad_S0[i][j];
                 /* off-diagonal term */
-                fij-= cpcq*(bpaq+apbq)*tdmXMM[i][j]*u[0]*sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmYMM[i][j]*u[1]*sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmZMM[i][j]*u[2]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmXMM[i][j]*u[0]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmYMM[i][j]*u[1]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmZMM[i][j]*u[2]*sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmXMM[i][j]*u[0]/sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmYMM[i][j]*u[1]/sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmZMM[i][j]*u[2]/sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmXMM[i][j]*u[0]/sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmYMM[i][j]*u[1]/sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmZMM[i][j]*u[2]/sqrt(M);
                 fij*=HARTREE_BOHR2MD/totpop/M;
 	      }
 	    }
@@ -5348,6 +5322,7 @@ double do_diabatic_non_herm(t_commrec *cr,  t_forcerec *fr,
    */
   E0_norm_sq = iprod(qm->E,qm->E); // Square of the magitud of the E-field at k=0
   V0_2EP = qm->omega/(E0_norm_sq); //2*Epsilon0*V_cav at k=0 (in a.u.)
+  /*Important: As E0_norm_sq = E0_norm_sq_supermol/M, then u[i]_supermol=E[i]_supermol/sqrt(E0_norm_sq)=E[i]*sqrt(M)/{sqrt(E0_norm_sq_supermol/M)}=E[i]/sqrt(E0_norm_sq_supermol)*M */
   u[0]=qm->E[0]/sqrt(E0_norm_sq);
   u[1]=qm->E[1]/sqrt(E0_norm_sq);
   u[2]=qm->E[2]/sqrt(E0_norm_sq);
@@ -5555,12 +5530,12 @@ double do_diabatic_non_herm(t_commrec *cr,  t_forcerec *fr,
             for(p=nmol;p<ndim;p++){
               cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
               cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m])*sqrt(M);
-              fij -= cmcp*tdmX[i][j]*u[0];
-              fij -= cmcp*tdmY[i][j]*u[1];
-              fij -= cmcp*tdmZ[i][j]*u[2];
-              fij -= conj(cmcp)*tdmX[i][j]*u[0];
-              fij -= conj(cmcp)*tdmY[i][j]*u[1];
-              fij -= conj(cmcp)*tdmZ[i][j]*u[2];
+              fij -= cmcp*tdmX[i][j]*u[0]/sqrt(M);
+              fij -= cmcp*tdmY[i][j]*u[1]/sqrt(M);
+              fij -= cmcp*tdmZ[i][j]*u[2]/sqrt(M);
+              fij -= conj(cmcp)*tdmX[i][j]*u[0]/sqrt(M);
+              fij -= conj(cmcp)*tdmY[i][j]*u[1]/sqrt(M);
+              fij -= conj(cmcp)*tdmZ[i][j]*u[2]/sqrt(M);
             }
             fij*=HARTREE_BOHR2MD/totpop/M;
 	  }
@@ -5608,12 +5583,12 @@ double do_diabatic_non_herm(t_commrec *cr,  t_forcerec *fr,
             for(p=nmol;p<ndim;p++){
               cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
               cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m])*sqrt(M);
-              fij -= cmcp*tdmXMM[i][j]*u[0];
-              fij -= cmcp*tdmYMM[i][j]*u[1];
-              fij -= cmcp*tdmZMM[i][j]*u[2];
-              fij -= conj(cmcp)*tdmXMM[i][j]*u[0];
-              fij -= conj(cmcp)*tdmYMM[i][j]*u[1];
-              fij -= conj(cmcp)*tdmZMM[i][j]*u[2];
+              fij -= cmcp*tdmXMM[i][j]*u[0]/sqrt(M);
+              fij -= cmcp*tdmYMM[i][j]*u[1]/sqrt(M);
+              fij -= cmcp*tdmZMM[i][j]*u[2]/sqrt(M);
+              fij -= conj(cmcp)*tdmXMM[i][j]*u[0]/sqrt(M);
+              fij -= conj(cmcp)*tdmYMM[i][j]*u[1]/sqrt(M);
+              fij -= conj(cmcp)*tdmZMM[i][j]*u[2]/sqrt(M);
             }
             fij*=HARTREE_BOHR2MD/totpop/M;
           }
@@ -5701,6 +5676,7 @@ double do_diabatic(t_commrec *cr,  t_forcerec *fr,
   /* information on field, was already calcualted above...*/
   E0_norm_sq = iprod(qm->E,qm->E); // Square of the magitud of the E-field at k=0
   V0_2EP = qm->omega/(E0_norm_sq); //2*Epsilon0*V_cav at k=0 (in a.u.)
+  /*Important: As E0_norm_sq = E0_norm_sq_supermol/M, then u[i]_supermol=E[i]_supermol/sqrt(E0_norm_sq)=E[i]*sqrt(M)/{sqrt(E0_norm_sq_supermol/M)}=E[i]/sqrt(E0_norm_sq_supermol)*M */
   u[0]=qm->E[0]/sqrt(E0_norm_sq);
   u[1]=qm->E[1]/sqrt(E0_norm_sq);
   u[2]=qm->E[2]/sqrt(E0_norm_sq);
@@ -5900,12 +5876,12 @@ double do_diabatic(t_commrec *cr,  t_forcerec *fr,
             for(p=nmol;p<ndim;p++){
               cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
               cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m])*sqrt(M);
-              fij -= cmcp*tdmX[i][j]*u[0];
-              fij -= cmcp*tdmY[i][j]*u[1];
-              fij -= cmcp*tdmZ[i][j]*u[2];
-              fij -= conj(cmcp)*tdmX[i][j]*u[0];
-              fij -= conj(cmcp)*tdmY[i][j]*u[1];
-              fij -= conj(cmcp)*tdmZ[i][j]*u[2];
+              fij -= cmcp*tdmX[i][j]*u[0]/sqrt(M);
+              fij -= cmcp*tdmY[i][j]*u[1]/sqrt(M);
+              fij -= cmcp*tdmZ[i][j]*u[2]/sqrt(M);
+              fij -= conj(cmcp)*tdmX[i][j]*u[0]/sqrt(M);
+              fij -= conj(cmcp)*tdmY[i][j]*u[1]/sqrt(M);
+              fij -= conj(cmcp)*tdmZ[i][j]*u[2]/sqrt(M);
             }
             fij*=HARTREE_BOHR2MD/totpop/M;
 	  }
@@ -5953,12 +5929,12 @@ double do_diabatic(t_commrec *cr,  t_forcerec *fr,
             for(p=nmol;p<ndim;p++){
               cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
               cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m])*sqrt(M);
-              fij -= cmcp*tdmXMM[i][j]*u[0];
-              fij -= cmcp*tdmYMM[i][j]*u[1];
-              fij -= cmcp*tdmZMM[i][j]*u[2];
-              fij -= conj(cmcp)*tdmXMM[i][j]*u[0];
-              fij -= conj(cmcp)*tdmYMM[i][j]*u[1];
-              fij -= conj(cmcp)*tdmZMM[i][j]*u[2];
+              fij -= cmcp*tdmXMM[i][j]*u[0]/sqrt(M);
+              fij -= cmcp*tdmYMM[i][j]*u[1]/sqrt(M);
+              fij -= cmcp*tdmZMM[i][j]*u[2]/sqrt(M);
+              fij -= conj(cmcp)*tdmXMM[i][j]*u[0]/sqrt(M);
+              fij -= conj(cmcp)*tdmYMM[i][j]*u[1]/sqrt(M);
+              fij -= conj(cmcp)*tdmZMM[i][j]*u[2]/sqrt(M);
             }
             fij*=HARTREE_BOHR2MD/totpop/M;
           }
@@ -6056,6 +6032,7 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
   /* information on field, was already calcualted above...*/
   E0_norm_sq = iprod(qm->E,qm->E); // Square of the magitud of the E-field at k=0
   V0_2EP = qm->omega/(E0_norm_sq); //2*Epsilon0*V_cav at k=0 (in a.u.)
+  /*Important: As E0_norm_sq = E0_norm_sq_supermol/M, then u[i]_supermol=E[i]_supermol/sqrt(E0_norm_sq)=E[i]*sqrt(M)/{sqrt(E0_norm_sq_supermol/M)}=E[i]/sqrt(E0_norm_sq_supermol)*M */
   u[0]=qm->E[0]/sqrt(E0_norm_sq);
   u[1]=qm->E[1]/sqrt(E0_norm_sq);
   u[2]=qm->E[2]/sqrt(E0_norm_sq);
@@ -6190,22 +6167,8 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
     for (i=0;i<(qm->n_max)+1;i++){
       a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion((i+qm->n_min),qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*qm->z[m]);
     }
-    if (qm->bSupermol){
-      /* normal molecules */
-      if (m<(qm->n_norm)){
-        ab = conj(eigvec[p*ndim+m])*a_sump;
-        ab += conj(a_sump)*eigvec[p*ndim+m];
-      }
-      /* supermolecules */
-      else{
-        ab = conj(eigvec[p*ndim+m])*a_sump*sqrt(M);
-        ab += conj(a_sump)*eigvec[p*ndim+m]*sqrt(M);
-      }
-    }
-    else{
-      ab = conj(eigvec[p*ndim+m])*a_sump; //actually sum of alphas * beta_j
-      ab += conj(a_sump)*eigvec[p*ndim+m];
-    }
+    ab = conj(eigvec[p*ndim+m])*a_sump;
+    ab += conj(a_sump)*eigvec[p*ndim+m];
     for(i=0;i<qm->nrQMatoms;i++){
       for(j=0;j<DIM;j++){
 	if (qm->bSupermol){
@@ -6333,9 +6296,9 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
 	      /* diagonal term */
               fij =(betasq*(QMgrad_S1[i][j]+(M-1)*QMgrad_S0[i][j])+M*(1-betasq)*QMgrad_S0[i][j]);
               /* off-diagonal term, Because coeficients are real: ab = ba */
-              fij-= ab*tdmX[i][j]*u[0]*sqrt(M);
-              fij-= ab*tdmY[i][j]*u[1]*sqrt(M);
-              fij-= ab*tdmZ[i][j]*u[2]*sqrt(M);
+              fij-= ab*tdmX[i][j]*u[0]/sqrt(M);
+              fij-= ab*tdmY[i][j]*u[1]/sqrt(M);
+              fij-= ab*tdmZ[i][j]*u[2]/sqrt(M);
               fij*=HARTREE_BOHR2MD*csq/M;
 	    }
 	  }
@@ -6370,9 +6333,9 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
               /* diagonal term */
               fij =(betasq*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])+M*(1-betasq)*MMgrad_S0[i][j]);
               /* off-diagonal term, Because coeficients are real: ab = ba */
-              fij-= ab*tdmXMM[i][j]*u[0]*sqrt(M);
-              fij-= ab*tdmYMM[i][j]*u[1]*sqrt(M);
-              fij-= ab*tdmZMM[i][j]*u[2]*sqrt(M);
+              fij-= ab*tdmXMM[i][j]*u[0]/sqrt(M);
+              fij-= ab*tdmYMM[i][j]*u[1]/sqrt(M);
+              fij-= ab*tdmZMM[i][j]*u[2]/sqrt(M);
 	      fij*=HARTREE_BOHR2MD*csq/M;
             }
           }
@@ -6410,10 +6373,10 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
           }
           /* supermolecules */
           else{
-            bpaq = conj(eigvec[p*ndim+m])*a_sumq*sqrt(M);
-            apbq = conj(a_sump)*eigvec[q*ndim+m]*sqrt(M);
-            bqap = conj(eigvec[q*ndim+m])*a_sump*sqrt(M); /* conj(apbq) */
-            aqbp = conj(a_sumq)*eigvec[p*ndim+m]*sqrt(M); /* conj(bpaq) */
+            bpaq = conj(eigvec[p*ndim+m])*a_sumq/sqrt(M);
+            apbq = conj(a_sump)*eigvec[q*ndim+m]/sqrt(M);
+            bqap = conj(eigvec[q*ndim+m])*a_sump/sqrt(M); /* conj(apbq) */
+            aqbp = conj(a_sumq)*eigvec[p*ndim+m]/sqrt(M); /* conj(bpaq) */
           }
         }
         else{
@@ -6446,12 +6409,12 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
                 fij = cpcq*betasq*(QMgrad_S1[i][j]+(M-1)*QMgrad_S0[i][j])-M*cpcq*betasq*QMgrad_S0[i][j];
                 fij+= conj(cpcq)*conj(betasq)*(QMgrad_S1[i][j]+(M-1)*QMgrad_S0[i][j])-M*conj(cpcq)*conj(betasq)*QMgrad_S0[i][j];
 	        /* off-diagonal term */
-                fij-= cpcq*(bpaq+apbq)*tdmX[i][j]*u[0]*sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmY[i][j]*u[1]*sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmZ[i][j]*u[2]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmX[i][j]*u[0]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmY[i][j]*u[1]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmZ[i][j]*u[2]*sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmX[i][j]*u[0]/sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmY[i][j]*u[1]/sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmZ[i][j]*u[2]/sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmX[i][j]*u[0]/sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmY[i][j]*u[1]/sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmZ[i][j]*u[2]/sqrt(M);
                 fij*=HARTREE_BOHR2MD/M;
 	      }
 	    }
@@ -6495,12 +6458,12 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
                 fij = cpcq*betasq*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])-M*cpcq*betasq*MMgrad_S0[i][j];
                 fij+= conj(cpcq)*conj(betasq)*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])-M*conj(cpcq)*conj(betasq)*MMgrad_S0[i][j];
                 /* off-diagonal term */
-                fij-= cpcq*(bpaq+apbq)*tdmXMM[i][j]*u[0]*sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmYMM[i][j]*u[1]*sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmZMM[i][j]*u[2]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmXMM[i][j]*u[0]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmYMM[i][j]*u[1]*sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmZMM[i][j]*u[2]*sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmXMM[i][j]*u[0]/sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmYMM[i][j]*u[1]/sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmZMM[i][j]*u[2]/sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmXMM[i][j]*u[0]/sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmYMM[i][j]*u[1]/sqrt(M);
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmZMM[i][j]*u[2]/sqrt(M);
                 fij*=HARTREE_BOHR2MD/M;
 	      }
 	    }

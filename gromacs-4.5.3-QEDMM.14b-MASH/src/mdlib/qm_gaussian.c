@@ -3343,33 +3343,89 @@ void get_NAC(int ndim, int nmol,dplx  *eigvec,double *eigval,rvec *tdmX,
     /*  a_sumq += eigvec[q*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol)); */
     }
     bpaq = conj(eigvec[p*ndim+m])*a_sumq;
-    apbq = conj(a_sump)*eigvec[q*ndim+m]; 
+    apbq = conj(a_sump)*eigvec[q*ndim+m];
     bqap = conj(eigvec[q*ndim+m])*a_sump; /* conj(apbq) */
     aqbp = conj(a_sumq)*eigvec[p*ndim+m]; /* conj(bpaq) */
     for(i=0;i<qm->nrQMatoms;i++){
       for(j=0;j<DIM;j++){
-	/* diagonal term 
-	 */
-	fij = betasq*(QMgrad_S1[i][j]-QMgrad_S0[i][j]);
-	/* off-diagonal term 
-	 */
-	fij-= (bpaq+apbq)*tdmX[i][j]*u[0];
-	fij-= (bpaq+apbq)*tdmY[i][j]*u[1];
-	fij-= (bpaq+apbq)*tdmZ[i][j]*u[2];
-	fij/gap;
-	fij*=HARTREE_BOHR2MD;
-	nacQM[i][j] +=creal(fij);	
+        if (qm->bSupermol){
+          /* normal molecules */
+          if(m<(qm->n_norm)){
+            /* diagonal term */
+            fij = betasq*(QMgrad_S1[i][j]-QMgrad_S0[i][j]);
+            /* off-diagonal term */
+            fij-= (bpaq+apbq)*tdmX[i][j]*u[0];
+            fij-= (bpaq+apbq)*tdmY[i][j]*u[1];
+            fij-= (bpaq+apbq)*tdmZ[i][j]*u[2];
+            fij*=HARTREE_BOHR2MD;
+            fij/=(HARTREE2KJ*AVOGADRO*gap);
+            nacQM[i][j] +=creal(fij);
+          }
+	  else{
+            /* diagonal term */
+            /* fij = betasq*(QMgrad_S1[i][j]-QMgrad_S0[i][j]); */
+	    fij = betasq*(QMgrad_S1[i][j]+(M-1)*QMgrad_S0[i][j])-M*betasq*QMgrad_S0[i][j];
+	    /* off-diagonal term */
+            fij-= (bpaq+apbq)*tdmX[i][j]*u[0];
+            fij-= (bpaq+apbq)*tdmY[i][j]*u[1];
+            fij-= (bpaq+apbq)*tdmZ[i][j]*u[2];
+            fij*=HARTREE_BOHR2MD;
+            fij/=(HARTREE2KJ*AVOGADRO*gap*M);
+            nacQM[i][j] +=creal(fij);
+	  }
+        }
+	else{
+          /* diagonal term */
+          fij = betasq*(QMgrad_S1[i][j]-QMgrad_S0[i][j]);
+          /* off-diagonal term */
+          fij-= (bpaq+apbq)*tdmX[i][j]*u[0];
+          fij-= (bpaq+apbq)*tdmY[i][j]*u[1];
+          fij-= (bpaq+apbq)*tdmZ[i][j]*u[2];
+          fij*=HARTREE_BOHR2MD;
+          fij/=(HARTREE2KJ*AVOGADRO*gap);
+          nacQM[i][j] +=creal(fij);
+	}
       }
     }
     for(i=0;i<mm->nrMMatoms;i++){
       for(j=0;j<DIM;j++){
-	fij = betasq*(MMgrad_S1[i][j]-MMgrad_S0[i][j]);
-	fij-= (bpaq+apbq)*tdmXMM[i][j]*u[0];
-	fij-= (bpaq+apbq)*tdmYMM[i][j]*u[1];
-	fij-= (bpaq+apbq)*tdmZMM[i][j]*u[2];
-	fij/=gap;
-	fij*=HARTREE_BOHR2MD;
-	nacMM[i][j] +=creal(fij);
+        if (qm->bSupermol){
+          /* normal molecules */
+          if(m<(qm->n_norm)){
+            /* diagonal term */
+            fij = betasq*(MMgrad_S1[i][j]-MMgrad_S0[i][j]);
+            /* off-diagonal term */
+            fij-= (bpaq+apbq)*tdmXMM[i][j]*u[0];
+            fij-= (bpaq+apbq)*tdmYMM[i][j]*u[1];
+            fij-= (bpaq+apbq)*tdmZMM[i][j]*u[2];
+            fij*=HARTREE_BOHR2MD;
+            fij/=(HARTREE2KJ*AVOGADRO*gap);
+            nacMM[i][j] +=creal(fij);
+          }
+          else{
+            /* diagonal term */
+            /* fij = betasq*(MMgrad_S1[i][j]-MMgrad_S0[i][j]); */
+	    fij = betasq*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])-M*betasq*MMgrad_S0[i][j];
+            /* off-diagonal term */
+            fij-= (bpaq+apbq)*tdmXMM[i][j]*u[0];
+            fij-= (bpaq+apbq)*tdmYMM[i][j]*u[1];
+            fij-= (bpaq+apbq)*tdmZMM[i][j]*u[2];
+            fij*=HARTREE_BOHR2MD;
+            fij/=(HARTREE2KJ*AVOGADRO*gap*M);
+            nacMM[i][j] +=creal(fij);
+          }
+        }
+	else{
+          /* diagonal term */
+          fij = betasq*(MMgrad_S1[i][j]-MMgrad_S0[i][j]);
+          /* off-diagonal term */
+          fij-= (bpaq+apbq)*tdmXMM[i][j]*u[0];
+          fij-= (bpaq+apbq)*tdmYMM[i][j]*u[1];
+          fij-= (bpaq+apbq)*tdmZMM[i][j]*u[2];
+          fij*=HARTREE_BOHR2MD;
+          fij/=(HARTREE2KJ*AVOGADRO*gap);
+          nacMM[i][j] +=creal(fij);
+	}
       }
     }  
     //  }
@@ -3384,10 +3440,21 @@ static int check_vel(t_commrec *cr,
    *
    * see Fabiano, Groenhof, Thiel; Chemical Physics 351 (2008) 111-116
    */
-  int i;
+  int i,m;
   double a=0, b=0, dE;
-  
-  
+  double M;
+  if (qm->bSupermol){
+    M = (((double) qm->n_tot)-((double) qm->n_norm))/((double) qm->n_super);   /* number of normal molecules that each supermolecule represents */
+  }
+
+  if(MULTISIM(cr)){
+    m=cr->ms->sim;
+  }
+  else{
+    m=0;
+  }
+
+
   /* we hopped 
    * short J -> K
    */
@@ -3398,30 +3465,89 @@ static int check_vel(t_commrec *cr,
   fprintf(stderr,"The energy gap for hopping from state %d to state %d is %lf\n",J,K,dE);
   /* \sum_A M_A (\vec d^IJ_A)^2 
    */
-  for(i=0;i<qm->nrQMatoms;i++){
-    /* check if the atom has mass. E.g. link atoms have no mass, and hence
-     * cannot contribute to the kinetic energy
-     */
-    if(qm->ffmass[i]>0.){
-      a+=1/qm->ffmass[i]*dot(3,QMnac[i],QMnac[i]);
+
+  if (qm->bSupermol){
+    /* normal molecules */
+    if(m<(qm->n_norm)){
+      for(i=0;i<qm->nrQMatoms;i++){
+        /* check if the atom has mass. E.g. link atoms have no mass, and hence
+        * cannot contribute to the kinetic energy */
+        if(qm->ffmass[i]>0.){
+          a+=1/qm->ffmass[i]*dot(3,QMnac[i],QMnac[i]);
+        }
+      }
+      fprintf(stderr,"before MM, a = %lf\n",a);
+      for(i=0;i<mm->nrMMatoms;i++){
+        if(mm->ffmass[i]>0.){
+          a+=1/mm->ffmass[i]*dot(3,MMnac[i],MMnac[i]);
+        }
+      }
+      a*=0.5;
+      for(i=0;i<qm->nrQMatoms;i++){
+        if(qm->ffmass[i]>0.){
+          b+=dot(3,qm->vQM[i],QMnac[i]);
+        }
+      }
+      fprintf(stderr,"before MM, b= %lf\n",b);
+      for(i=0;i<mm->nrMMatoms;i++){
+        if(mm->ffmass[i]>0.){
+          b+=dot(3,mm->vMM[i],MMnac[i]);
+        }
+      }
+    }
+    else{
+      for(i=0;i<qm->nrQMatoms;i++){
+        /* check if the atom has mass. E.g. link atoms have no mass, and hence
+        * cannot contribute to the kinetic energy */
+        if(qm->ffmass[i]>0.){
+          a+=1/qm->ffmass[i]*dot(3,QMnac[i],QMnac[i])*M;
+        }
+      }
+      fprintf(stderr,"before MM, a = %lf\n",a);
+      for(i=0;i<mm->nrMMatoms;i++){
+        if(mm->ffmass[i]>0.){
+          a+=1/mm->ffmass[i]*dot(3,MMnac[i],MMnac[i])*M;
+        }
+      }
+      a*=0.5;
+      for(i=0;i<qm->nrQMatoms;i++){
+        if(qm->ffmass[i]>0.){
+          b+=dot(3,qm->vQM[i],QMnac[i])*M;
+        }
+      }
+      fprintf(stderr,"before MM, b= %lf\n",b);
+      for(i=0;i<mm->nrMMatoms;i++){
+        if(mm->ffmass[i]>0.){
+          b+=dot(3,mm->vMM[i],MMnac[i])*M;
+        }
+      }
     }
   }
-  fprintf(stderr,"before MM, a = %lf\n",a);
-  for(i=0;i<mm->nrMMatoms;i++){
-    if(mm->ffmass[i]>0.){
-      a+=1/mm->ffmass[i]*dot(3,MMnac[i],MMnac[i]);
+  else{
+    for(i=0;i<qm->nrQMatoms;i++){
+      /* check if the atom has mass. E.g. link atoms have no mass, and hence
+      * cannot contribute to the kinetic energy */
+      if(qm->ffmass[i]>0.){
+        a+=1/qm->ffmass[i]*dot(3,QMnac[i],QMnac[i]);
+      }
     }
-  }
-  a*=0.5;
-  for(i=0;i<qm->nrQMatoms;i++){
-    if(qm->ffmass[i]>0.){
-      b+=dot(3,qm->vQM[i],QMnac[i]);
+    fprintf(stderr,"before MM, a = %lf\n",a);
+    for(i=0;i<mm->nrMMatoms;i++){
+      if(mm->ffmass[i]>0.){
+        a+=1/mm->ffmass[i]*dot(3,MMnac[i],MMnac[i]);
+      }
     }
-  }
-  fprintf(stderr,"before MM, b= %lf\n",b);
-  for(i=0;i<mm->nrMMatoms;i++){
-    if(mm->ffmass[i]>0.){
-      b+=dot(3,mm->vMM[i],MMnac[i]);
+    a*=0.5;
+    for(i=0;i<qm->nrQMatoms;i++){
+      if(qm->ffmass[i]>0.){
+        b+=dot(3,qm->vQM[i],QMnac[i]);
+      }
+    }
+    fprintf(stderr,"before MM, b= %lf\n",b);
+    for(i=0;i<mm->nrMMatoms;i++){
+      if(mm->ffmass[i]>0.){
+        b+=dot(3,mm->vMM[i],MMnac[i]);
+      }
     }
   }
   if(MULTISIM(cr)){
@@ -3701,7 +3827,6 @@ double do_hybrid_non_herm(t_commrec *cr,  t_forcerec *fr,
    */
   E0_norm_sq = iprod(qm->E,qm->E); // Square of the magitud of the E-field at k=0
   V0_2EP = qm->omega/(E0_norm_sq); //2*Epsilon0*V_cav at k=0 (in a.u.)
-  /*Important: As E0_norm_sq = E0_norm_sq_supermol/M, then u[i]_supermol=E[i]_supermol/sqrt(E0_norm_sq)=E[i]*sqrt(M)/{sqrt(E0_norm_sq_supermol/M)}=E[i]/sqrt(E0_norm_sq_supermol)*M */
   u[0]=qm->E[0]/sqrt(E0_norm_sq);
   u[1]=qm->E[1]/sqrt(E0_norm_sq);
   u[2]=qm->E[2]/sqrt(E0_norm_sq);
@@ -3744,8 +3869,7 @@ double do_hybrid_non_herm(t_commrec *cr,  t_forcerec *fr,
   snew(umatrix,ndim*ndim);
   hopto[0]=qm->polariton;
   if(dodiag){
-    /* node 1 diagonalizes the matrix 
-     */
+    /* node 1 diagonalizes the matrix */
     fprintf(stderr,"\n\ndiagonalizing matrix on node %d\n",m);
     diag(ndim,eigval,eigvec,matrix);
     fprintf(stderr,"step %d Eigenvalues: ",step);
@@ -4136,22 +4260,8 @@ if (doprop){
       for (i=0;i<(qm->n_max-qm->n_min)+1;i++){
 	a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*qm->z[m]);
       }
-      if (qm->bSupermol){
-        /* normal molecules */
-        if (m<(qm->n_norm)){
-          ab = conj(eigvec[p*ndim+m])*a_sump;
-          ab += conj(a_sump)*eigvec[p*ndim+m];
-        }
-        /* supermolecules */
-        else{
-          ab = conj(eigvec[p*ndim+m])*a_sump*sqrt(M);
-          ab += conj(a_sump)*eigvec[p*ndim+m]*sqrt(M);
-        }
-      }
-      else{
-        ab = conj(eigvec[p*ndim+m])*a_sump; //actually sum of alphas * beta_j
-        ab += conj(a_sump)*eigvec[p*ndim+m]; // ADDED GG, this accounts for the 3rd and 4th term together in equation 13.
-      }
+      ab = conj(eigvec[p*ndim+m])*a_sump; //actually sum of alphas * beta_j
+      ab += conj(a_sump)*eigvec[p*ndim+m]; // ADDED GG, this accounts for the 3rd and 4th term together in equation 13.
       /* we normalize the total energy: */
       QMener += csq*eigval[p]*HARTREE2KJ*AVOGADRO/totpop;
       for(i=0;i<qm->nrQMatoms;i++){
@@ -4172,9 +4282,9 @@ if (doprop){
 	      /* diagonal term */
               fij =(betasq*(QMgrad_S1[i][j]+(M-1)*QMgrad_S0[i][j])+M*(1-betasq)*QMgrad_S0[i][j]);
               /* off-diagonal term, Because coeficients are real: ab = ba */
-              fij-= ab*tdmX[i][j]*u[0]/sqrt(M);
-              fij-= ab*tdmY[i][j]*u[1]/sqrt(M);
-              fij-= ab*tdmZ[i][j]*u[2]/sqrt(M);
+              fij-= ab*tdmX[i][j]*u[0];
+              fij-= ab*tdmY[i][j]*u[1];
+              fij-= ab*tdmZ[i][j]*u[2];
               fij*=HARTREE_BOHR2MD*csq/totpop/M;
 	    }
 	  }
@@ -4209,9 +4319,9 @@ if (doprop){
               /* diagonal term */
               fij =(betasq*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])+M*(1-betasq)*MMgrad_S0[i][j]);
               /* off-diagonal term, Because coeficients are real: ab = ba */
-              fij-= ab*tdmXMM[i][j]*u[0]/sqrt(M);
-              fij-= ab*tdmYMM[i][j]*u[1]/sqrt(M);
-              fij-= ab*tdmZMM[i][j]*u[2]/sqrt(M);
+              fij-= ab*tdmXMM[i][j]*u[0];
+              fij-= ab*tdmYMM[i][j]*u[1];
+              fij-= ab*tdmZMM[i][j]*u[2];
               fij*=HARTREE_BOHR2MD*csq/totpop/M;
             }
           }
@@ -4240,28 +4350,10 @@ if (doprop){
         for (i=0;i<(qm->n_max)+1;i++){
           a_sumq += eigvec[q*ndim+nmol+i]*sqrt(cavity_dispersion(i+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*qm->z[m]);
         }
-        if (qm->bSupermol){
-          /* normal molecules */
-          if (m<(qm->n_norm)){
-            bpaq = conj(eigvec[p*ndim+m])*a_sumq;
-            apbq = conj(a_sump)*eigvec[q*ndim+m];
-            bqap = conj(eigvec[q*ndim+m])*a_sump; /* conj(apbq) */
-            aqbp = conj(a_sumq)*eigvec[p*ndim+m]; /* conj(bpaq) */
-          }
-          /* supermolecules */
-          else{
-            bpaq = conj(eigvec[p*ndim+m])*a_sumq*sqrt(M);
-            apbq = conj(a_sump)*eigvec[q*ndim+m]*sqrt(M);
-            bqap = conj(eigvec[q*ndim+m])*a_sump*sqrt(M); /* conj(apbq) */
-            aqbp = conj(a_sumq)*eigvec[p*ndim+m]*sqrt(M); /* conj(bpaq) */
-          }
-        }
-        else{
-          bpaq = conj(eigvec[p*ndim+m])*a_sumq;
-          apbq = conj(a_sump)*eigvec[q*ndim+m];
-          bqap = conj(eigvec[q*ndim+m])*a_sump; /* conj(apbq) */
-          aqbp = conj(a_sumq)*eigvec[p*ndim+m]; /* conj(bpaq) */
-        }
+	bpaq = conj(eigvec[p*ndim+m])*a_sumq;
+        apbq = conj(a_sump)*eigvec[q*ndim+m];
+        bqap = conj(eigvec[q*ndim+m])*a_sump; /* conj(apbq) */
+        aqbp = conj(a_sumq)*eigvec[p*ndim+m]; /* conj(bpaq) */
         for(i=0;i<qm->nrQMatoms;i++){
           for(j=0;j<DIM;j++){
             fij=0;
@@ -4286,12 +4378,12 @@ if (doprop){
                 fij = cpcq*betasq*(QMgrad_S1[i][j]+(M-1)*QMgrad_S0[i][j])-M*cpcq*betasq*QMgrad_S0[i][j];
                 fij+= conj(cpcq)*conj(betasq)*(QMgrad_S1[i][j]+(M-1)*QMgrad_S0[i][j])-M*conj(cpcq)*conj(betasq)*QMgrad_S0[i][j];
 	        /* off-diagonal term */
-                fij-= cpcq*(bpaq+apbq)*tdmX[i][j]*u[0]/sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmY[i][j]*u[1]/sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmZ[i][j]*u[2]/sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmX[i][j]*u[0]/sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmY[i][j]*u[1]/sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmZ[i][j]*u[2]/sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmX[i][j]*u[0];
+                fij-= cpcq*(bpaq+apbq)*tdmY[i][j]*u[1];
+                fij-= cpcq*(bpaq+apbq)*tdmZ[i][j]*u[2];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmX[i][j]*u[0];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmY[i][j]*u[1];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmZ[i][j]*u[2];
                 fij*=HARTREE_BOHR2MD/totpop/M;
 	      }
 	    }
@@ -4335,12 +4427,12 @@ if (doprop){
                 fij = cpcq*betasq*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])-M*cpcq*betasq*MMgrad_S0[i][j];
                 fij+= conj(cpcq)*conj(betasq)*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])-M*conj(cpcq)*conj(betasq)*MMgrad_S0[i][j];
                 /* off-diagonal term */
-                fij-= cpcq*(bpaq+apbq)*tdmXMM[i][j]*u[0]/sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmYMM[i][j]*u[1]/sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmZMM[i][j]*u[2]/sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmXMM[i][j]*u[0]/sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmYMM[i][j]*u[1]/sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmZMM[i][j]*u[2]/sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmXMM[i][j]*u[0];
+                fij-= cpcq*(bpaq+apbq)*tdmYMM[i][j]*u[1];
+                fij-= cpcq*(bpaq+apbq)*tdmZMM[i][j]*u[2];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmXMM[i][j]*u[0];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmYMM[i][j]*u[1];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmZMM[i][j]*u[2];
                 fij*=HARTREE_BOHR2MD/totpop/M;
 	      }
 	    }
@@ -4505,7 +4597,6 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
    */
   E0_norm_sq = iprod(qm->E,qm->E); // Square of the magitud of the E-field at k=0
   V0_2EP = qm->omega/(E0_norm_sq); //2*Epsilon0*V_cav at k=0 (in a.u.)
-  /*Important: As E0_norm_sq = E0_norm_sq_supermol/M, then u[i]_supermol=E[i]_supermol/sqrt(E0_norm_sq)=E[i]*sqrt(M)/{sqrt(E0_norm_sq_supermol/M)}=E[i]/sqrt(E0_norm_sq_supermol)*M */
   u[0]=qm->E[0]/sqrt(E0_norm_sq);
   u[1]=qm->E[1]/sqrt(E0_norm_sq);
   u[2]=qm->E[2]/sqrt(E0_norm_sq);
@@ -4924,22 +5015,8 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
       for (i=0;i<(qm->n_max)+1;i++){
 	a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion((i+qm->n_min),qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*qm->z[m]);
       }
-      if (qm->bSupermol){
-        /* normal molecules */
-        if (m<(qm->n_norm)){
-          ab = conj(eigvec[p*ndim+m])*a_sump;
-          ab += conj(a_sump)*eigvec[p*ndim+m];
-        }
-        /* supermolecules */
-        else{
-          ab = conj(eigvec[p*ndim+m])*a_sump*sqrt(M);
-          ab += conj(a_sump)*eigvec[p*ndim+m]*sqrt(M);
-        }
-      }
-      else{
-        ab = conj(eigvec[p*ndim+m])*a_sump; //actually sum of alphas * beta_j
-        ab += conj(a_sump)*eigvec[p*ndim+m]; // ADDED GG, this accounts for the 3rd and 4th term together in equation 13.
-      }
+      ab = conj(eigvec[p*ndim+m])*a_sump; //actually sum of alphas * beta_j
+      ab += conj(a_sump)*eigvec[p*ndim+m]; // ADDED GG, this accounts for the 3rd and 4th term together in equation 13.
       QMener += csq*eigval[p]*HARTREE2KJ*AVOGADRO/totpop;
       for(i=0;i<qm->nrQMatoms;i++){
         for(j=0;j<DIM;j++){
@@ -4959,9 +5036,9 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
 	      /* diagonal term */
               fij =(betasq*(QMgrad_S1[i][j]+(M-1)*QMgrad_S0[i][j])+M*(1-betasq)*QMgrad_S0[i][j]);
               /* off-diagonal term, Because coeficients are real: ab = ba */
-              fij-= ab*tdmX[i][j]*u[0]/sqrt(M);
-              fij-= ab*tdmY[i][j]*u[1]/sqrt(M);
-              fij-= ab*tdmZ[i][j]*u[2]/sqrt(M);
+              fij-= ab*tdmX[i][j]*u[0];
+              fij-= ab*tdmY[i][j]*u[1];
+              fij-= ab*tdmZ[i][j]*u[2];
               fij*=HARTREE_BOHR2MD*csq/totpop/M;
 	    }
 	  }
@@ -4996,9 +5073,9 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
               /* diagonal term */
               fij =(betasq*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])+M*(1-betasq)*MMgrad_S0[i][j]);
               /* off-diagonal term, Because coeficients are real: ab = ba */
-              fij-= ab*tdmXMM[i][j]*u[0]/sqrt(M);
-              fij-= ab*tdmYMM[i][j]*u[1]/sqrt(M);
-              fij-= ab*tdmZMM[i][j]*u[2]/sqrt(M);
+              fij-= ab*tdmXMM[i][j]*u[0];
+              fij-= ab*tdmYMM[i][j]*u[1];
+              fij-= ab*tdmZMM[i][j]*u[2];
               fij*=HARTREE_BOHR2MD*csq/totpop/M;
             }
           }
@@ -5037,10 +5114,10 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
           }
           /* supermolecules */
           else{
-            bpaq = conj(eigvec[p*ndim+m])*a_sumq*sqrt(M);
-            apbq = conj(a_sump)*eigvec[q*ndim+m]*sqrt(M);
-            bqap = conj(eigvec[q*ndim+m])*a_sump*sqrt(M); /* conj(apbq) */
-            aqbp = conj(a_sumq)*eigvec[p*ndim+m]*sqrt(M); /* conj(bpaq) */
+            bpaq = conj(eigvec[p*ndim+m])*a_sumq;
+            apbq = conj(a_sump)*eigvec[q*ndim+m];
+            bqap = conj(eigvec[q*ndim+m])*a_sump; /* conj(apbq) */
+            aqbp = conj(a_sumq)*eigvec[p*ndim+m]; /* conj(bpaq) */
           }
         }
         else{
@@ -5073,12 +5150,12 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
                 fij = cpcq*betasq*(QMgrad_S1[i][j]+(M-1)*QMgrad_S0[i][j])-M*cpcq*betasq*QMgrad_S0[i][j];
                 fij+= conj(cpcq)*conj(betasq)*(QMgrad_S1[i][j]+(M-1)*QMgrad_S0[i][j])-M*conj(cpcq)*conj(betasq)*QMgrad_S0[i][j];
 	        /* off-diagonal term */
-                fij-= cpcq*(bpaq+apbq)*tdmX[i][j]*u[0]/sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmY[i][j]*u[1]/sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmZ[i][j]*u[2]/sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmX[i][j]*u[0]/sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmY[i][j]*u[1]/sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmZ[i][j]*u[2]/sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmX[i][j]*u[0];
+                fij-= cpcq*(bpaq+apbq)*tdmY[i][j]*u[1];
+                fij-= cpcq*(bpaq+apbq)*tdmZ[i][j]*u[2];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmX[i][j]*u[0];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmY[i][j]*u[1];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmZ[i][j]*u[2];
                 fij*=HARTREE_BOHR2MD/totpop/M;
 	      }
 	    }
@@ -5122,12 +5199,12 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
                 fij = cpcq*betasq*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])-M*cpcq*betasq*MMgrad_S0[i][j];
                 fij+= conj(cpcq)*conj(betasq)*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])-M*conj(cpcq)*conj(betasq)*MMgrad_S0[i][j];
                 /* off-diagonal term */
-                fij-= cpcq*(bpaq+apbq)*tdmXMM[i][j]*u[0]/sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmYMM[i][j]*u[1]/sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmZMM[i][j]*u[2]/sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmXMM[i][j]*u[0]/sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmYMM[i][j]*u[1]/sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmZMM[i][j]*u[2]/sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmXMM[i][j]*u[0];
+                fij-= cpcq*(bpaq+apbq)*tdmYMM[i][j]*u[1];
+                fij-= cpcq*(bpaq+apbq)*tdmZMM[i][j]*u[2];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmXMM[i][j]*u[0];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmYMM[i][j]*u[1];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmZMM[i][j]*u[2];
                 fij*=HARTREE_BOHR2MD/totpop/M;
 	      }
 	    }
@@ -5322,7 +5399,6 @@ double do_diabatic_non_herm(t_commrec *cr,  t_forcerec *fr,
    */
   E0_norm_sq = iprod(qm->E,qm->E); // Square of the magitud of the E-field at k=0
   V0_2EP = qm->omega/(E0_norm_sq); //2*Epsilon0*V_cav at k=0 (in a.u.)
-  /*Important: As E0_norm_sq = E0_norm_sq_supermol/M, then u[i]_supermol=E[i]_supermol/sqrt(E0_norm_sq)=E[i]*sqrt(M)/{sqrt(E0_norm_sq_supermol/M)}=E[i]/sqrt(E0_norm_sq_supermol)*M */
   u[0]=qm->E[0]/sqrt(E0_norm_sq);
   u[1]=qm->E[1]/sqrt(E0_norm_sq);
   u[2]=qm->E[2]/sqrt(E0_norm_sq);
@@ -5476,9 +5552,9 @@ double do_diabatic_non_herm(t_commrec *cr,  t_forcerec *fr,
       }
       for(i=0;i<mm->nrMMatoms;i++){
         for(j=0;j<DIM;j++){
-          fij =MMgrad_S1[i][j];
-	      fij*=HARTREE_BOHR2MD;
-	      f[i+qm->nrQMatoms][j]      += creal(fij);
+          fij = MMgrad_S1[i][j];
+	  fij*=HARTREE_BOHR2MD;
+	  f[i+qm->nrQMatoms][j]      += creal(fij);
      	  fshift[i+qm->nrQMatoms][j] += creal(fij);
 	    }
       }
@@ -5507,13 +5583,13 @@ double do_diabatic_non_herm(t_commrec *cr,  t_forcerec *fr,
     csq = conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[m]+IMAG*qm->cimag[m]);
     for(i=0;i<qm->nrQMatoms;i++){
       for(j=0;j<DIM;j++){
+      cmcp = conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
+      cmcp *= sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m]);
 	if (qm->bSupermol){
           /* normal molecules */
           if (m<(qm->n_norm)){
             fij = csq*QMgrad_S1[i][j]+(totpop-csq)*QMgrad_S0[i][j];
             for(p=nmol;p<ndim;p++){
-              cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
-              cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m]);
               fij -= cmcp*tdmX[i][j]*u[0];
               fij -= cmcp*tdmY[i][j]*u[1];
               fij -= cmcp*tdmZ[i][j]*u[2];
@@ -5528,14 +5604,12 @@ double do_diabatic_non_herm(t_commrec *cr,  t_forcerec *fr,
               fij = csq*(QMgrad_S1[i][j]+(M-1)*QMgrad_S0[i][j])+M*(totpop-csq)*QMgrad_S0[i][j];
        /*     fij = (csq*QMgrad_S1[i][j]+(totpop-csq)*QMgrad_S0[i][j])*M; */
             for(p=nmol;p<ndim;p++){
-              cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
-              cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m])*sqrt(M);
-              fij -= cmcp*tdmX[i][j]*u[0]/sqrt(M);
-              fij -= cmcp*tdmY[i][j]*u[1]/sqrt(M);
-              fij -= cmcp*tdmZ[i][j]*u[2]/sqrt(M);
-              fij -= conj(cmcp)*tdmX[i][j]*u[0]/sqrt(M);
-              fij -= conj(cmcp)*tdmY[i][j]*u[1]/sqrt(M);
-              fij -= conj(cmcp)*tdmZ[i][j]*u[2]/sqrt(M);
+              fij -= cmcp*tdmX[i][j]*u[0];
+              fij -= cmcp*tdmY[i][j]*u[1];
+              fij -= cmcp*tdmZ[i][j]*u[2];
+              fij -= conj(cmcp)*tdmX[i][j]*u[0];
+              fij -= conj(cmcp)*tdmY[i][j]*u[1];
+              fij -= conj(cmcp)*tdmZ[i][j]*u[2];
             }
             fij*=HARTREE_BOHR2MD/totpop/M;
 	  }
@@ -5543,8 +5617,6 @@ double do_diabatic_non_herm(t_commrec *cr,  t_forcerec *fr,
         else{
           fij = csq*QMgrad_S1[i][j]+(totpop-csq)*QMgrad_S0[i][j];
           for(p=nmol;p<ndim;p++){
-            cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
-            cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m]);
             fij -= cmcp*tdmX[i][j]*u[0];
             fij -= cmcp*tdmY[i][j]*u[1];
             fij -= cmcp*tdmZ[i][j]*u[2];
@@ -5560,13 +5632,13 @@ double do_diabatic_non_herm(t_commrec *cr,  t_forcerec *fr,
     }
     for(i=0;i<mm->nrMMatoms;i++){
       for(j=0;j<DIM;j++){
+      cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
+      cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m]);
         if (qm->bSupermol){
           /* normal molecules */
           if (m<(qm->n_norm)){
             fij = csq*MMgrad_S1[i][j]+(totpop-csq)*MMgrad_S0[i][j];
             for(p=nmol;p<ndim;p++){
-              cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
-              cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m]);
               fij -= cmcp*tdmXMM[i][j]*u[0];
               fij -= cmcp*tdmYMM[i][j]*u[1];
               fij -= cmcp*tdmZMM[i][j]*u[2];
@@ -5581,14 +5653,12 @@ double do_diabatic_non_herm(t_commrec *cr,  t_forcerec *fr,
             fij = csq*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])+M*(totpop-csq)*MMgrad_S0[i][j];
 	  /*  fij = (csq*MMgrad_S1[i][j]+(totpop-csq)*MMgrad_S0[i][j])*M; */
             for(p=nmol;p<ndim;p++){
-              cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
-              cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m])*sqrt(M);
-              fij -= cmcp*tdmXMM[i][j]*u[0]/sqrt(M);
-              fij -= cmcp*tdmYMM[i][j]*u[1]/sqrt(M);
-              fij -= cmcp*tdmZMM[i][j]*u[2]/sqrt(M);
-              fij -= conj(cmcp)*tdmXMM[i][j]*u[0]/sqrt(M);
-              fij -= conj(cmcp)*tdmYMM[i][j]*u[1]/sqrt(M);
-              fij -= conj(cmcp)*tdmZMM[i][j]*u[2]/sqrt(M);
+              fij -= cmcp*tdmXMM[i][j]*u[0];
+              fij -= cmcp*tdmYMM[i][j]*u[1];
+              fij -= cmcp*tdmZMM[i][j]*u[2];
+              fij -= conj(cmcp)*tdmXMM[i][j]*u[0];
+              fij -= conj(cmcp)*tdmYMM[i][j]*u[1];
+              fij -= conj(cmcp)*tdmZMM[i][j]*u[2];
             }
             fij*=HARTREE_BOHR2MD/totpop/M;
           }
@@ -5596,8 +5666,6 @@ double do_diabatic_non_herm(t_commrec *cr,  t_forcerec *fr,
         else{
           fij = csq*MMgrad_S1[i][j]+(totpop-csq)*MMgrad_S0[i][j];
           for(p=nmol;p<ndim;p++){
-            cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
-            cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m]);
             fij -= cmcp*tdmXMM[i][j]*u[0];
             fij -= cmcp*tdmYMM[i][j]*u[1];
             fij -= cmcp*tdmZMM[i][j]*u[2];
@@ -5676,7 +5744,6 @@ double do_diabatic(t_commrec *cr,  t_forcerec *fr,
   /* information on field, was already calcualted above...*/
   E0_norm_sq = iprod(qm->E,qm->E); // Square of the magitud of the E-field at k=0
   V0_2EP = qm->omega/(E0_norm_sq); //2*Epsilon0*V_cav at k=0 (in a.u.)
-  /*Important: As E0_norm_sq = E0_norm_sq_supermol/M, then u[i]_supermol=E[i]_supermol/sqrt(E0_norm_sq)=E[i]*sqrt(M)/{sqrt(E0_norm_sq_supermol/M)}=E[i]/sqrt(E0_norm_sq_supermol)*M */
   u[0]=qm->E[0]/sqrt(E0_norm_sq);
   u[1]=qm->E[1]/sqrt(E0_norm_sq);
   u[2]=qm->E[2]/sqrt(E0_norm_sq);
@@ -5853,13 +5920,13 @@ double do_diabatic(t_commrec *cr,  t_forcerec *fr,
     csq = conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[m]+IMAG*qm->cimag[m]);
     for(i=0;i<qm->nrQMatoms;i++){
       for(j=0;j<DIM;j++){
+      cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
+      cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m]);
 	if (qm->bSupermol){
           /* normal molecules */
           if (m<(qm->n_norm)){
             fij = csq*QMgrad_S1[i][j]+(totpop-csq)*QMgrad_S0[i][j];
             for(p=nmol;p<ndim;p++){
-              cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
-              cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m]);
               fij -= cmcp*tdmX[i][j]*u[0];
               fij -= cmcp*tdmY[i][j]*u[1];
               fij -= cmcp*tdmZ[i][j]*u[2];
@@ -5874,14 +5941,12 @@ double do_diabatic(t_commrec *cr,  t_forcerec *fr,
               fij = csq*(QMgrad_S1[i][j]+(M-1)*QMgrad_S0[i][j])+M*(totpop-csq)*QMgrad_S0[i][j];
        /*     fij = (csq*QMgrad_S1[i][j]+(totpop-csq)*QMgrad_S0[i][j])*M; */
             for(p=nmol;p<ndim;p++){
-              cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
-              cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m])*sqrt(M);
-              fij -= cmcp*tdmX[i][j]*u[0]/sqrt(M);
-              fij -= cmcp*tdmY[i][j]*u[1]/sqrt(M);
-              fij -= cmcp*tdmZ[i][j]*u[2]/sqrt(M);
-              fij -= conj(cmcp)*tdmX[i][j]*u[0]/sqrt(M);
-              fij -= conj(cmcp)*tdmY[i][j]*u[1]/sqrt(M);
-              fij -= conj(cmcp)*tdmZ[i][j]*u[2]/sqrt(M);
+              fij -= cmcp*tdmX[i][j]*u[0];
+              fij -= cmcp*tdmY[i][j]*u[1];
+              fij -= cmcp*tdmZ[i][j]*u[2];
+              fij -= conj(cmcp)*tdmX[i][j]*u[0];
+              fij -= conj(cmcp)*tdmY[i][j]*u[1];
+              fij -= conj(cmcp)*tdmZ[i][j]*u[2];
             }
             fij*=HARTREE_BOHR2MD/totpop/M;
 	  }
@@ -5889,8 +5954,6 @@ double do_diabatic(t_commrec *cr,  t_forcerec *fr,
         else{
           fij = csq*QMgrad_S1[i][j]+(totpop-csq)*QMgrad_S0[i][j];
           for(p=nmol;p<ndim;p++){
-            cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
-            cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m]);
             fij -= cmcp*tdmX[i][j]*u[0];
             fij -= cmcp*tdmY[i][j]*u[1];
             fij -= cmcp*tdmZ[i][j]*u[2];
@@ -5906,13 +5969,13 @@ double do_diabatic(t_commrec *cr,  t_forcerec *fr,
     }
     for(i=0;i<mm->nrMMatoms;i++){
       for(j=0;j<DIM;j++){
+        cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
+        cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m]);
         if (qm->bSupermol){
           /* normal molecules */
           if (m<(qm->n_norm)){
             fij = csq*MMgrad_S1[i][j]+(totpop-csq)*MMgrad_S0[i][j];
             for(p=nmol;p<ndim;p++){
-              cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
-              cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m]);
               fij -= cmcp*tdmXMM[i][j]*u[0];
               fij -= cmcp*tdmYMM[i][j]*u[1];
               fij -= cmcp*tdmZMM[i][j]*u[2];
@@ -5927,14 +5990,12 @@ double do_diabatic(t_commrec *cr,  t_forcerec *fr,
             fij = csq*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])+M*(totpop-csq)*MMgrad_S0[i][j];
 	  /*  fij = (csq*MMgrad_S1[i][j]+(totpop-csq)*MMgrad_S0[i][j])*M; */
             for(p=nmol;p<ndim;p++){
-              cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
-              cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m])*sqrt(M);
-              fij -= cmcp*tdmXMM[i][j]*u[0]/sqrt(M);
-              fij -= cmcp*tdmYMM[i][j]*u[1]/sqrt(M);
-              fij -= cmcp*tdmZMM[i][j]*u[2]/sqrt(M);
-              fij -= conj(cmcp)*tdmXMM[i][j]*u[0]/sqrt(M);
-              fij -= conj(cmcp)*tdmYMM[i][j]*u[1]/sqrt(M);
-              fij -= conj(cmcp)*tdmZMM[i][j]*u[2]/sqrt(M);
+              fij -= cmcp*tdmXMM[i][j]*u[0];
+              fij -= cmcp*tdmYMM[i][j]*u[1];
+              fij -= cmcp*tdmZMM[i][j]*u[2];
+              fij -= conj(cmcp)*tdmXMM[i][j]*u[0];
+              fij -= conj(cmcp)*tdmYMM[i][j]*u[1];
+              fij -= conj(cmcp)*tdmZMM[i][j]*u[2];
             }
             fij*=HARTREE_BOHR2MD/totpop/M;
           }
@@ -5942,8 +6003,6 @@ double do_diabatic(t_commrec *cr,  t_forcerec *fr,
         else{
           fij = csq*MMgrad_S1[i][j]+(totpop-csq)*MMgrad_S0[i][j];
           for(p=nmol;p<ndim;p++){
-            cmcp=conj(qm->creal[m]+IMAG*qm->cimag[m])*(qm->creal[p]+IMAG*qm->cimag[p]);
-            cmcp*=sqrt(cavity_dispersion((p-nmol)+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*((p-nmol)+qm->n_min)/L_au*qm->z[m]);
             fij -= cmcp*tdmXMM[i][j]*u[0];
             fij -= cmcp*tdmYMM[i][j]*u[1];
             fij -= cmcp*tdmZMM[i][j]*u[2];
@@ -6032,7 +6091,6 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
   /* information on field, was already calcualted above...*/
   E0_norm_sq = iprod(qm->E,qm->E); // Square of the magitud of the E-field at k=0
   V0_2EP = qm->omega/(E0_norm_sq); //2*Epsilon0*V_cav at k=0 (in a.u.)
-  /*Important: As E0_norm_sq = E0_norm_sq_supermol/M, then u[i]_supermol=E[i]_supermol/sqrt(E0_norm_sq)=E[i]*sqrt(M)/{sqrt(E0_norm_sq_supermol/M)}=E[i]/sqrt(E0_norm_sq_supermol)*M */
   u[0]=qm->E[0]/sqrt(E0_norm_sq);
   u[1]=qm->E[1]/sqrt(E0_norm_sq);
   u[2]=qm->E[2]/sqrt(E0_norm_sq);
@@ -6261,22 +6319,8 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
       for (i=0;i<(qm->n_max)+1;i++){
 	a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion((i+qm->n_min),qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*qm->z[m]);
       }
-      if (qm->bSupermol){
-        /* normal molecules */
-        if (m<(qm->n_norm)){
-          ab = conj(eigvec[p*ndim+m])*a_sump;
-          ab += conj(a_sump)*eigvec[p*ndim+m];
-        }
-        /* supermolecules */
-        else{
-          ab = conj(eigvec[p*ndim+m])*a_sump*sqrt(M);
-          ab += conj(a_sump)*eigvec[p*ndim+m]*sqrt(M);
-        }
-      }
-      else{
-        ab = conj(eigvec[p*ndim+m])*a_sump; //actually sum of alphas * beta_j
-        ab += conj(a_sump)*eigvec[p*ndim+m]; // ADDED GG, this accounts for the 3rd and 4th term together in equation 13.
-      }
+      ab = conj(eigvec[p*ndim+m])*a_sump; //actually sum of alphas * beta_j
+      ab += conj(a_sump)*eigvec[p*ndim+m]; // ADDED GG, this accounts for the 3rd and 4th term together in equation 13.
       QMener += csq*eigval[p]*HARTREE2KJ*AVOGADRO;
       for(i=0;i<qm->nrQMatoms;i++){
         for(j=0;j<DIM;j++){
@@ -6296,9 +6340,9 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
 	      /* diagonal term */
               fij =(betasq*(QMgrad_S1[i][j]+(M-1)*QMgrad_S0[i][j])+M*(1-betasq)*QMgrad_S0[i][j]);
               /* off-diagonal term, Because coeficients are real: ab = ba */
-              fij-= ab*tdmX[i][j]*u[0]/sqrt(M);
-              fij-= ab*tdmY[i][j]*u[1]/sqrt(M);
-              fij-= ab*tdmZ[i][j]*u[2]/sqrt(M);
+              fij-= ab*tdmX[i][j]*u[0];
+              fij-= ab*tdmY[i][j]*u[1];
+              fij-= ab*tdmZ[i][j]*u[2];
               fij*=HARTREE_BOHR2MD*csq/M;
 	    }
 	  }
@@ -6333,9 +6377,9 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
               /* diagonal term */
               fij =(betasq*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])+M*(1-betasq)*MMgrad_S0[i][j]);
               /* off-diagonal term, Because coeficients are real: ab = ba */
-              fij-= ab*tdmXMM[i][j]*u[0]/sqrt(M);
-              fij-= ab*tdmYMM[i][j]*u[1]/sqrt(M);
-              fij-= ab*tdmZMM[i][j]*u[2]/sqrt(M);
+              fij-= ab*tdmXMM[i][j]*u[0];
+              fij-= ab*tdmYMM[i][j]*u[1];
+              fij-= ab*tdmZMM[i][j]*u[2];
 	      fij*=HARTREE_BOHR2MD*csq/M;
             }
           }
@@ -6363,28 +6407,10 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
         for (i=0;i<(qm->n_max)+1;i++){
           a_sumq += eigvec[q*ndim+nmol+i]*sqrt(cavity_dispersion((i+qm->n_min),qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*qm->z[m]);
         }
-        if (qm->bSupermol){
-          /* normal molecules */
-          if (m<(qm->n_norm)){
-            bpaq = conj(eigvec[p*ndim+m])*a_sumq;
-            apbq = conj(a_sump)*eigvec[q*ndim+m];
-            bqap = conj(eigvec[q*ndim+m])*a_sump; /* conj(apbq) */
-            aqbp = conj(a_sumq)*eigvec[p*ndim+m]; /* conj(bpaq) */
-          }
-          /* supermolecules */
-          else{
-            bpaq = conj(eigvec[p*ndim+m])*a_sumq/sqrt(M);
-            apbq = conj(a_sump)*eigvec[q*ndim+m]/sqrt(M);
-            bqap = conj(eigvec[q*ndim+m])*a_sump/sqrt(M); /* conj(apbq) */
-            aqbp = conj(a_sumq)*eigvec[p*ndim+m]/sqrt(M); /* conj(bpaq) */
-          }
-        }
-        else{
-          bpaq = conj(eigvec[p*ndim+m])*a_sumq;
-          apbq = conj(a_sump)*eigvec[q*ndim+m];
-          bqap = conj(eigvec[q*ndim+m])*a_sump; /* conj(apbq) */
-          aqbp = conj(a_sumq)*eigvec[p*ndim+m]; /* conj(bpaq) */
-        }
+        bpaq = conj(eigvec[p*ndim+m])*a_sumq;
+        apbq = conj(a_sump)*eigvec[q*ndim+m];
+        bqap = conj(eigvec[q*ndim+m])*a_sump; /* conj(apbq) */
+        aqbp = conj(a_sumq)*eigvec[p*ndim+m]; /* conj(bpaq) */
         for(i=0;i<qm->nrQMatoms;i++){
           for(j=0;j<DIM;j++){
             fij=0;
@@ -6409,12 +6435,12 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
                 fij = cpcq*betasq*(QMgrad_S1[i][j]+(M-1)*QMgrad_S0[i][j])-M*cpcq*betasq*QMgrad_S0[i][j];
                 fij+= conj(cpcq)*conj(betasq)*(QMgrad_S1[i][j]+(M-1)*QMgrad_S0[i][j])-M*conj(cpcq)*conj(betasq)*QMgrad_S0[i][j];
 	        /* off-diagonal term */
-                fij-= cpcq*(bpaq+apbq)*tdmX[i][j]*u[0]/sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmY[i][j]*u[1]/sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmZ[i][j]*u[2]/sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmX[i][j]*u[0]/sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmY[i][j]*u[1]/sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmZ[i][j]*u[2]/sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmX[i][j]*u[0];
+                fij-= cpcq*(bpaq+apbq)*tdmY[i][j]*u[1];
+                fij-= cpcq*(bpaq+apbq)*tdmZ[i][j]*u[2];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmX[i][j]*u[0];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmY[i][j]*u[1];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmZ[i][j]*u[2];
                 fij*=HARTREE_BOHR2MD/M;
 	      }
 	    }
@@ -6458,12 +6484,12 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
                 fij = cpcq*betasq*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])-M*cpcq*betasq*MMgrad_S0[i][j];
                 fij+= conj(cpcq)*conj(betasq)*(MMgrad_S1[i][j]+(M-1)*MMgrad_S0[i][j])-M*conj(cpcq)*conj(betasq)*MMgrad_S0[i][j];
                 /* off-diagonal term */
-                fij-= cpcq*(bpaq+apbq)*tdmXMM[i][j]*u[0]/sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmYMM[i][j]*u[1]/sqrt(M);
-                fij-= cpcq*(bpaq+apbq)*tdmZMM[i][j]*u[2]/sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmXMM[i][j]*u[0]/sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmYMM[i][j]*u[1]/sqrt(M);
-                fij-= conj(cpcq)*(bqap+aqbp)*tdmZMM[i][j]*u[2]/sqrt(M);
+                fij-= cpcq*(bpaq+apbq)*tdmXMM[i][j]*u[0];
+                fij-= cpcq*(bpaq+apbq)*tdmYMM[i][j]*u[1];
+                fij-= cpcq*(bpaq+apbq)*tdmZMM[i][j]*u[2];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmXMM[i][j]*u[0];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmYMM[i][j]*u[1];
+                fij-= conj(cpcq)*(bqap+aqbp)*tdmZMM[i][j]*u[2];
                 fij*=HARTREE_BOHR2MD/M;
 	      }
 	    }
@@ -6648,6 +6674,7 @@ real call_gaussian_QED(t_commrec *cr,  t_forcerec *fr,
   if(MULTISIM(cr)){
     gmx_sumd_sim(ndim,energies,cr->ms);
   }
+/*  Eground = energies[ndim-1]; */
 //  for (i=qm->n_max;i>0;i--){
 //    energies[ndim-(qm->n_max+1)-i]+=cavity_dispersion(i,qm);
 //  }
@@ -6693,7 +6720,7 @@ real call_gaussian_QED(t_commrec *cr,  t_forcerec *fr,
 
   snew(matrix,ndim*ndim);
   for (i=0;i<ndim;i++){
-    matrix[i+(i*ndim)]=energies[i];
+    matrix[i+(i*ndim)]=energies[i];   /* -Eground ;*/
   }
   for (k=0;k<nmol;k++){
     for (j=0;j<((qm->n_max-qm->n_min)+1);j++){

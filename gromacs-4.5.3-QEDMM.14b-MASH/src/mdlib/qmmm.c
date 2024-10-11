@@ -259,19 +259,23 @@ void update_QMMM_coord(rvec x[],rvec v[], t_forcerec *fr, t_QMrec *qm, t_MMrec *
   srenew(qm->vQM,qm->nrQMatoms);
   for(i=0;i<qm->nrQMatoms;i++){
     rvec_sub(x[qm->indexQM[i]],fr->shift_vec[qm->shiftQM[i]],qm->xQM[i]);
-    qm->vQM[i][XX] = v[qm->indexQM[i]][XX];
-    qm->vQM[i][YY] = v[qm->indexQM[i]][YY];
-    qm->vQM[i][ZZ] = v[qm->indexQM[i]][ZZ];
+      if (fr->qr->SHmethod){
+          qm->vQM[i][XX] = v[qm->indexQM[i]][XX];
+          qm->vQM[i][YY] = v[qm->indexQM[i]][YY];
+          qm->vQM[i][ZZ] = v[qm->indexQM[i]][ZZ];
+      }
 
   }
   /* also shift the MM atoms into the central box, if any 
    */
   srenew(mm->vMM,mm->nrMMatoms);
   for(i=0;i<mm->nrMMatoms;i++){
-    rvec_sub(x[mm->indexMM[i]],fr->shift_vec[mm->shiftMM[i]],mm->xMM[i]);   
-    mm->vMM[i][XX] = v[mm->indexMM[i]][XX];
-    mm->vMM[i][YY] = v[mm->indexMM[i]][YY];
-    mm->vMM[i][ZZ] = v[mm->indexMM[i]][ZZ];
+    rvec_sub(x[mm->indexMM[i]],fr->shift_vec[mm->shiftMM[i]],mm->xMM[i]);
+      if (fr->qr->SHmethod){
+          mm->vMM[i][XX] = v[mm->indexMM[i]][XX];
+          mm->vMM[i][YY] = v[mm->indexMM[i]][YY];
+          mm->vMM[i][ZZ] = v[mm->indexMM[i]][ZZ];
+      }
   }
 } /* update_QMMM_coord */
 

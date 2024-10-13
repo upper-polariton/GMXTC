@@ -3659,7 +3659,7 @@ double do_hybrid_non_herm(t_commrec *cr,  t_forcerec *fr,
   u[0]=qm->E[0]/sqrt(E0_norm_sq);
   u[1]=qm->E[1]/sqrt(E0_norm_sq);
   u[2]=qm->E[2]/sqrt(E0_norm_sq);
-  /* silly array to communicate the courrent state
+  /* silly array to communicate the current state
    */
   snew(state,1);
   /* decide which node does propagation and which node does diagonalization
@@ -5931,10 +5931,16 @@ real call_gaussian_QED(t_commrec *cr,  t_forcerec *fr,
   double V0_2EP = qm->omega/(E0_norm_sq); //2*Epsilon0*V_cav at k=0 (in a.u.)
   double u[3];
 //  fprintf(stderr,"E0_norm_sq = %lf\n",E0_norm_sq);
-  u[0]=qm->E[0]/sqrt(E0_norm_sq);
-  u[1]=qm->E[1]/sqrt(E0_norm_sq);
-  u[2]=qm->E[2]/sqrt(E0_norm_sq); //unit vector in E=Ex*u1+Ey*u2+Ez*u3
-
+    if(E0_norm_sq>0.0){
+        u[0]=qm->E[0]/sqrt(E0_norm_sq);
+        u[1]=qm->E[1]/sqrt(E0_norm_sq);
+        u[2]=qm->E[2]/sqrt(E0_norm_sq); //unit vector in E=Ex*u1+Ey*u2+Ez*u3
+    }
+    else{
+        V0_2EP=1;
+        u[0]=u[1]=u[2]=0.0;
+    }
+      
   for (i=0;i<(qm->n_max-qm->n_min+1);i++){
 //    couplings[m*((qm->n_max)+1)+i] = -iprod(tdm,u)*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
     couplings[m*((qm->n_max-qm->n_min)+1)+i] = -iprod(tdm,u)*sqrt(cavity_dispersion(qm->n_min+i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(qm->n_min+i)/L_au*m*L_au/((double) nmol));

@@ -14,7 +14,7 @@ library_names=''
 old_library='libgmxpreprocess_mpi_d.a'
 
 # Libraries that this one depends upon.
-dependency_libs=' /home/ggroenh/programs/gromacs-4.5.3-QEDMM.14b-MASH/src/mdlib/libmd_mpi_d.la -liomp5 -lxml2 /home/ggroenh/programs/gromacs-4.5.3-QEDMM.14b-MASH/src/gmxlib/libgmx_mpi_d.la -lnsl -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl'
+dependency_libs=' /home/ggroenh/git/GMXTC/gromacs-4.5.3-QEDMM.14b-MASH/src/mdlib/libmd_mpi_d.la -liomp5 -lxml2 /home/ggroenh/git/GMXTC/gromacs-4.5.3-QEDMM.14b-MASH/src/gmxlib/libgmx_mpi_d.la -lnsl -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl'
 
 # Version information for libgmxpreprocess_mpi_d.
 current=6

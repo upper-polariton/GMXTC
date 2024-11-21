@@ -3393,7 +3393,7 @@ static int check_vel(t_commrec *cr,
  
   /* hop energy allowed 
    */
-  if (b*b - 4.0*a*dE > 0.0 ){
+  if (b*b - 4.0*a*dE >= 0.0 ){
     /* take the solution with the smaller modulus 
      */
     if (b <  0){
@@ -3434,7 +3434,7 @@ void adjust_vel(int m, t_QMMMrec *qr, t_QMrec *qm, t_MMrec *mm, double f,
     //	    qr->v[qm->indexQM[at]][YY],
     //	    qr->v[qm->indexQM[at]][ZZ]);
     for(i=0;i<DIM;i++){
-      if (qm->ffmass[at]>0.){
+      if (qm->ffmass[at]>0. && QMnac[at][i]*QMnac[at][i] > 0.){
 	qr->v[qm->indexQM[at]][i] -= f*QMnac[at][i]/(qm->ffmass[at]);
 	qm->vQM[at][i]= qr->v[qm->indexQM[at]][i];
       }      
@@ -3442,7 +3442,7 @@ void adjust_vel(int m, t_QMMMrec *qr, t_QMrec *qm, t_MMrec *mm, double f,
   }
   for (at=0; at<mm->nrMMatoms; at++){
     for(i=0;i<DIM;i++){
-      if (mm->ffmass[at]>0.){
+      if (mm->ffmass[at]>0. && MMnac[at][i]*MMnac[at][i] > 0.){
 	qr->v[mm->indexMM[at]][i] -= f*MMnac[at][i]/(mm->ffmass[at]);
 	mm->vMM[at][i]= qr->v[mm->indexMM[at]][i];
       }

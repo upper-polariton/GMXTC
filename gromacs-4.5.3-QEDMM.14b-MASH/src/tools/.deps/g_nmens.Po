@@ -1,0 +1,8 @@
+g_nmens.o: g_nmens.c /usr/include/stdc-predef.h ../../src/config.h \
+ ../../include/gmx_ana.h
+
+/usr/include/stdc-predef.h:
+
+../../src/config.h:
+
+../../include/gmx_ana.h:

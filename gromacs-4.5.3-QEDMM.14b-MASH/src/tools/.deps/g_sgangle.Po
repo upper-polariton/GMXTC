@@ -1,0 +1,8 @@
+g_sgangle.o: g_sgangle.c /usr/include/stdc-predef.h ../../src/config.h \
+ ../../include/gmx_ana.h
+
+/usr/include/stdc-predef.h:
+
+../../src/config.h:
+
+../../include/gmx_ana.h:

@@ -1,0 +1,8 @@
+trjconv.o: trjconv.c /usr/include/stdc-predef.h ../../src/config.h \
+ ../../include/gmx_ana.h
+
+/usr/include/stdc-predef.h:
+
+../../src/config.h:
+
+../../include/gmx_ana.h:

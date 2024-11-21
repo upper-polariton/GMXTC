@@ -1,0 +1,6 @@
+gmx_fft_fftw2.lo: gmx_fft_fftw2.c /usr/include/stdc-predef.h \
+ ../../src/config.h
+
+/usr/include/stdc-predef.h:
+
+../../src/config.h:

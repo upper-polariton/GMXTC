@@ -13,7 +13,7 @@
 # Variables set by the configuration script:
 LIBS         = -lmd_mpi_d -lgmx_mpi_d  -liomp5 -lmkl_sequential -lmkl_core -lmkl_intel_lp64 -lxml2  -lnsl -lm -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl   
 LDFLAGS      = -L/usr/local/gromacs/lib  
-CFLAGS	     = -mlong-double-64  -I/usr/include/libxml2 -I/usr/local/gromacs/include -DGMX_DOUBLE	
+CFLAGS	     = -I/usr/include/libxml2 -I/usr/local/gromacs/include -DGMX_DOUBLE	
 CC           = mpicc
 LD           = $(CC)
 

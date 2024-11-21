@@ -1,8 +1,0 @@
-g_spol.o: g_spol.c /usr/include/stdc-predef.h ../../src/config.h \
- ../../include/gmx_ana.h
-
-/usr/include/stdc-predef.h:
-
-../../src/config.h:
-
-../../include/gmx_ana.h:

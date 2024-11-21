@@ -1,6 +1,0 @@
-gmx_system_xdr.lo: gmx_system_xdr.c /usr/include/stdc-predef.h \
- ../../src/config.h
-
-/usr/include/stdc-predef.h:
-
-../../src/config.h:

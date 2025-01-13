@@ -3292,13 +3292,13 @@ void get_NAC(int ndim, int nmol,dplx  *eigvec,double *eigval,rvec *tdmX,
   a_sump = 0.0+IMAG*0.0;
   gap = eigval[q]-eigval[p];
   //  if (gap > 0.0001 || gap < -0.0001){
-  for (i=0;i<(qm->n_max)+1;i++){
-    a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
+  for (i=0;i<(qm->n_max-qm->n_min)+1;i++){
+    a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*m*L_au/((double) nmol));
   }
   betasq = conj(eigvec[p*ndim+m])*eigvec[q*ndim+m];
   a_sumq = 0.0+IMAG*0.0;
-  for (i=0;i<(qm->n_max)+1;i++){
-    a_sumq += eigvec[q*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
+  for (i=0;i<(qm->n_max-qm->n_min)+1;i++){
+    a_sumq += eigvec[q*ndim+nmol+i]*sqrt(cavity_dispersion(i+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*m*L_au/((double) nmol));
   }
   bpaq = a_sumq*conj(eigvec[p*ndim+m]);
   apbq = conj(a_sump)*eigvec[q*ndim+m];
@@ -3496,13 +3496,13 @@ void print_NAC(int ndim, int nmol,dplx  *eigvec,double *eigval,rvec *tdmX, rvec 
       a_sump = 0.0+IMAG*0.0;
       gap = eigval[q]-eigval[p];
       if (gap > 0.0001 || gap < -0.0001){
-        for (i=0;i<(qm->n_max)+1;i++){
-          a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(-IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
+        for (i=0;i<(qm->n_max-qm->n_min)+1;i++){
+          a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*m*L_au/((double) nmol));
         }
         betasq = conj(eigvec[p*ndim+m])*eigvec[q*ndim+m];
         a_sumq = 0.0+IMAG*0.0;
-        for (i=0;i<(qm->n_max)+1;i++){
-          a_sumq += eigvec[q*ndim+nmol+i]*sqrt(cavity_dispersion(i,qm)/V0_2EP)*cexp(-IMAG*2*M_PI*i/L_au*m*L_au/((double) nmol));
+        for (i=0;i<(qm->n_max-qm->n_min)+1;i++){
+          a_sumq += eigvec[q*ndim+nmol+i]*sqrt(cavity_dispersion(i+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*m*L_au/((double) nmol));
         }
         bpaq = a_sumq*conj(eigvec[p*ndim+m]);
         apbq = conj(a_sump)*eigvec[q*ndim+m];
@@ -4090,7 +4090,7 @@ if (doprop){
         betasq = conj(eigvec[p*ndim+m])*eigvec[q*ndim+m];
         bpaq = conj(a_sum)*eigvec[q*ndim+m];
         a_sumq = 0.0+IMAG*0.0;
-        for (i=0;i<(qm->n_max)+1;i++){
+        for (i=0;i<(qm->n_max-qm->n_min)+1;i++){
           a_sumq += eigvec[q*ndim+nmol+i]*sqrt(cavity_dispersion(i+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*m*L_au/((double) nmol));
         }
         bpaq = conj(eigvec[p*ndim+m])*a_sumq;
@@ -4597,7 +4597,7 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
     p=qm->polariton;
     betasq = conj(eigvec[p*ndim+m])*eigvec[p*ndim+m];
     a_sump = 0.0+IMAG*0.0;
-    for (i=0;i<(qm->n_max)+1;i++){
+    for (i=0;i<(qm->n_max-qm->n_min)+1;i++){
       a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*m*L_au/((double) nmol));
     }
     ab = conj(eigvec[p*ndim+m])*a_sump; //actually sum of alphas * beta_j
@@ -4649,7 +4649,7 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
       csq = conj(qm->creal[p]+IMAG*qm->cimag[p])*(qm->creal[p]+IMAG*qm->cimag[p]);
       betasq = conj(eigvec[p*ndim+m])*eigvec[p*ndim+m];
       a_sump = 0.0+IMAG*0.0;
-      for (i=0;i<(qm->n_max)+1;i++){
+      for (i=0;i<(qm->n_max-qm->n_min)+1;i++){
         a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion(i+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*m*L_au/((double) nmol));
       }
       ab = conj(eigvec[p*ndim+m])*a_sump; //actually sum of alphas * beta_j
@@ -4694,8 +4694,8 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
         betasq = conj(eigvec[p*ndim+m])*eigvec[q*ndim+m];
         bpaq = conj(a_sum)*eigvec[q*ndim+m];
         a_sumq = 0.0+IMAG*0.0;
-        for (i=0;i<(qm->n_max)+1;i++){
-          a_sumq += eigvec[q*ndim+nmol+i]*sqrt(cavity_dispersion(i-qm->n_max,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i-qm->n_max)/L_au*m*L_au/((double) nmol));
+        for (i=0;i<(qm->n_max-qm->n_min)+1;i++){
+          a_sumq += eigvec[q*ndim+nmol+i]*sqrt(cavity_dispersion(i+qm->n_min,qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*m*L_au/((double) nmol));
         }
         bpaq = conj(eigvec[p*ndim+m])*a_sumq;
         apbq = conj(a_sump)*eigvec[q*ndim+m];
@@ -5612,7 +5612,7 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
     p=qm->polariton;
     betasq = conj(eigvec[p*ndim+m])*eigvec[p*ndim+m];
     a_sump = 0.0+IMAG*0.0;
-    for (i=0;i<(qm->n_max)+1;i++){
+    for (i=0;i<(qm->n_max-qm->n_min)+1;i++){
       a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion((i+qm->n_min),qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*m*L_au/((double) nmol));
     }
     ab = conj(eigvec[p*ndim+m])*a_sump; //actually sum of alphas * beta_j
@@ -5658,7 +5658,7 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
       csq = conj(qm->creal[p]+IMAG*qm->cimag[p])*(qm->creal[p]+IMAG*qm->cimag[p])/totpop;
       betasq = conj(eigvec[p*ndim+m])*eigvec[p*ndim+m];
       a_sump = 0.0+IMAG*0.0;
-      for (i=0;i<(qm->n_max)+1;i++){
+      for (i=0;i<(qm->n_max-qm->n_min)+1;i++){
         a_sump += eigvec[p*ndim+nmol+i]*sqrt(cavity_dispersion((i+qm->n_min),qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*m*L_au/((double) nmol));
       }
       ab = conj(eigvec[p*ndim+m])*a_sump; //actually sum of alphas * beta_j
@@ -5703,7 +5703,7 @@ double do_adiabatic(t_commrec *cr,  t_forcerec *fr,
         bpaq = conj(a_sum)*eigvec[q*ndim+m];
         a_sumq = 0.0+IMAG*0.0;
 	
-        for (i=0;i<(qm->n_max)+1;i++){
+        for (i=0;i<(qm->n_max-qm->n_min)+1;i++){
           a_sumq += eigvec[q*ndim+nmol+i]*sqrt(cavity_dispersion((i+qm->n_min),qm)/V0_2EP)*cexp(IMAG*2*M_PI*(i+qm->n_min)/L_au*m*L_au/((double) nmol));
         }
         bpaq = conj(eigvec[p*ndim+m])*a_sumq;
@@ -5822,7 +5822,7 @@ real call_gaussian_QED(t_commrec *cr,  t_forcerec *fr,
   /* multiple gaussian jobs for QED */
   static int
     step=0;
-  int
+    int
     i,j=0,k,m,ndim,nmol;
   double
     *energies,Eground,c, QMener=0.0;

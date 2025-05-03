@@ -6020,40 +6020,61 @@ real call_gaussian_QED(t_commrec *cr,  t_forcerec *fr,
   }
     /* print the total dipole moment
      */
-    double *tdmarray,tdmcol_real[3],tdmcol_imag[3];
+    double dp,*tdmarray,tdmcol_real[3],tdmcol_imag[3],*uarray;
     snew(tdmarray,3*nmol);
+    snew(uarray,3*nmol);
     for(k=0;k<DIM;k++){
         tdmarray[m*DIM+k]=tdm[k];
+	uarray[m*DIM+k]=u[k];
     }
     if(MULTISIM(cr)){
         /* communicate the dipoles */
         gmx_sumd_sim(nmol*3,tdmarray,cr->ms);
+	/* and the field unit vectors (this is silly...) */
+	gmx_sumd_sim(nmol*3,uarray,cr->ms);
     }
     if(m==0){
+	/* check if we need to flip dipoles */
+	for (i=1;i<nmol;i++){
+	  dp = dot(3,&uarray[i*DIM],&uarray[0]);
+//	  fprintf(stderr,"DP = %lf\n",dp);
+          if(dp<0){
+            /* invert */
+		 
+            for(k=0;k<DIM;k++){
+              tdmarray[i*DIM+k]*=-1.;
+	    }
+	   // fprintf(stderr,"dipole moment %d = ( %lf , %lf , %lf )\n",i,tdmarray[i*DIM+0],tdmarray[i*DIM+1],tdmarray[i*DIM+2]);
+	  }
+        }
+
         FILE *dipout;
         char *dipolefile;
         snew(dipolefile,3000);
         sprintf(dipolefile,"%s/dipole.dat",qm->work_dir);
-        dipout=fopen(dipolefile);
-        
-        for(i=0;i<ndim;i++){
+        dipout=fopen(dipolefile,"w");
+        /* check the sign of the field wrt to the first molecule */ 
+        for(i=0;i<ndim;i++){
             tdmcol_real[0]=tdmcol_real[1]=tdmcol_real[2]=0;
             tdmcol_imag[0]=tdmcol_imag[1]=tdmcol_imag[2]=0;
             for(j=0;j<nmol;j++){
+//		    fprintf(stderr,"state %d dipole moment %d = ( %lf , %lf , %lf ) and coeff: %lf + I %lf\n",i,j,tdmarray[j*DIM+0],tdmarray[j*DIM+1],tdmarray[j*DIM+2],creal(qm->eigvec[i*ndim+j]),cimag(qm->eigvec[i*ndim+j]));
+		    
                 for(k=0;k<DIM;k++){
                     tdmcol_real[k] += creal(qm->eigvec[i*ndim+j])*tdmarray[DIM*j+k];
                     tdmcol_imag[k] += cimag(qm->eigvec[i*ndim+j])*tdmarray[DIM*j+k];
                 }
             }
             fprintf(dipout,"Step %d state %d total |TDM|^2: %12.8lf\n",step, i,
-                    tmdcol_real[0]*tmdcol_real[0]+tmdcol_imag[0]*tmdcol_imag[0],
-                    tmdcol_real[1]*tmdcol_real[1]+tmdcol_imag[1]*tmdcol_imag[1],
-                    tmdcol_real[2]*tmdcol_real[2]+tmdcol_imag[2]*tmdcol_imag[2]);
+                    tdmcol_real[0]*tdmcol_real[0]+tdmcol_imag[0]*tdmcol_imag[0]+
+                    tdmcol_real[1]*tdmcol_real[1]+tdmcol_imag[1]*tdmcol_imag[1]+
+                    tdmcol_real[2]*tdmcol_real[2]+tdmcol_imag[2]*tdmcol_imag[2]);
         }
         fclose(dipout);
         free (dipolefile);
     }
-    free(tdmarray)
+    free(tdmarray);
+    free(uarray);
     
   /* store the Hamiltonian for the next step in QMrec */
   for(i=0;i<ndim*ndim;i++){

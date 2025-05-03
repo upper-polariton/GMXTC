@@ -6052,7 +6052,7 @@ real call_gaussian_QED(t_commrec *cr,  t_forcerec *fr,
         char *dipolefile;
         snew(dipolefile,3000);
         sprintf(dipolefile,"%s/dipole.dat",qm->work_dir);
-        dipout=fopen(dipolefile,"w");
+        dipout=fopen(dipolefile,"a");
         /* check the sign of the field wrt to the first molecule */ 
         for(i=0;i<ndim;i++){
             tdmcol_real[0]=tdmcol_real[1]=tdmcol_real[2]=0;

@@ -4260,9 +4260,9 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
   int
     dodiag=0,doprop=0,*state,i,j,k,p,q,m,nmol,ndim,prop,hopto[1],dohop[1];
   char
-    *eigenvectorfile,*coefficientfile,*energyfile,buf[3000];
+    *eigenvectorfile,*coefficientfile,*energyfile,buf[3000],*dipolefile;
   FILE
-    *evout=NULL,*Cout=NULL;
+    *evout=NULL,*Cout=NULL,*dipout=NULL;
   rvec
     *nacQM=NULL,*nacMM=NULL;
   start = time(NULL);
@@ -4318,21 +4318,39 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
   snew(umatrix,ndim*ndim);
   hopto[0]=qm->polariton;
 
-  if(dodiag){
-    /* diagonalize the matrix to get the adiabatic basis states
-     */
-    fprintf(stderr,"\n\ndiagonalizing matrix on node %d\n",m);
-    diag(ndim,eigval,eigvec,matrix);
-    fprintf(stderr,"step %d Eigenvalues: ",step);
-    for ( i = 0 ; i<ndim;i++){
-      fprintf(stderr,"%lf ",eigval[i]);
-      qm->eigval[i]=eigval[i];
-    }
-    fprintf(stderr,"\n");
-    for(i=0;i<ndim*ndim;i++){
-      eigvec_real[i]=creal(eigvec[i]);
-      eigvec_imag[i]=cimag(eigvec[i]);
-    }
+    if(dodiag){
+        /* diagonalize the matrix to get the adiabatic basis states
+         */
+        fprintf(stderr,"\n\ndiagonalizing matrix on node %d\n",m);
+        diag(ndim,eigval,eigvec,matrix);
+        fprintf(stderr,"step %d Eigenvalues: ",step);
+        for ( i = 0 ; i<ndim;i++){
+            fprintf(stderr,"%lf ",eigval[i]);
+            qm->eigval[i]=eigval[i];
+        }
+        fprintf(stderr,"\n");
+        for(i=0;i<ndim*ndim;i++){
+            eigvec_real[i]=creal(eigvec[i]);
+            eigvec_imag[i]=cimag(eigvec[i]);
+        }
+        /* print the total dipole moment
+         */
+        
+        snew(dipolefile,3000);
+        
+        sprintf(dipolefile,"%s/dipole.dat",qm->work_dir);
+        dipout=fopen(dipolefile)
+        for(i=0;i<ndim;i++){
+            for(k=0;k<nmol;k++){
+                tdmtot[0]+=tdmX[k]*eigvec[i*ndim+k];
+                tdmtot[1]+=tdmY[k]*eigvec[i*ndim+k];
+                tdmtot[2]+=tdmZ[k]*eigvec[i*ndim+k];
+            }
+            fprintf(dipout,"Step %d state %d total TDM: %12.8lf\n",step, i,conj(tdmtot[0])*tdmtot[0]+conj(tdmtot[1])*tdmtot[1]+conj(tdmtot[2])*tdmtot[2]);
+            creal(eigvec[i*ndim+k]),cimag(eigvec[i*ndim+k]));
+        }
+        fclose(dipout);
+        free (dipolefile);
   }
   /* while node 0 performs propagation in the diabatic basis
    */
@@ -4785,7 +4803,8 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
     fprintf (Cout,"%.5lf\n",qm->groundstate);
     fclose(Cout);
   }
-  /* now account for the decay that will happen in the next timestep 
+   
+  /* now account for the decay that will happen in the next timestep
    */
   if(qm->QEDdecay > 0){
     qm->groundstate = 0;

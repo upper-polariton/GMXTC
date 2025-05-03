@@ -4333,24 +4333,7 @@ double do_hybrid(t_commrec *cr,  t_forcerec *fr,
             eigvec_real[i]=creal(eigvec[i]);
             eigvec_imag[i]=cimag(eigvec[i]);
         }
-        /* print the total dipole moment
-         */
         
-        snew(dipolefile,3000);
-        
-        sprintf(dipolefile,"%s/dipole.dat",qm->work_dir);
-        dipout=fopen(dipolefile)
-        for(i=0;i<ndim;i++){
-            for(k=0;k<nmol;k++){
-                tdmtot[0]+=tdmX[k]*eigvec[i*ndim+k];
-                tdmtot[1]+=tdmY[k]*eigvec[i*ndim+k];
-                tdmtot[2]+=tdmZ[k]*eigvec[i*ndim+k];
-            }
-            fprintf(dipout,"Step %d state %d total TDM: %12.8lf\n",step, i,conj(tdmtot[0])*tdmtot[0]+conj(tdmtot[1])*tdmtot[1]+conj(tdmtot[2])*tdmtot[2]);
-            creal(eigvec[i*ndim+k]),cimag(eigvec[i*ndim+k]));
-        }
-        fclose(dipout);
-        free (dipolefile);
   }
   /* while node 0 performs propagation in the diabatic basis
    */
@@ -5854,7 +5837,7 @@ real call_gaussian_QED(t_commrec *cr,  t_forcerec *fr,
   double
     *tmp=NULL,L_au=qm->L*microM2BOHR;
   dplx
-    *matrix=NULL,*couplings=NULL;
+    *matrix=NULL,*couplings=NULL,tdmtot[3];
   double
     *send_couple_real,*send_couple_imag;
   int
@@ -6035,7 +6018,43 @@ real call_gaussian_QED(t_commrec *cr,  t_forcerec *fr,
 				    tdmX, tdmY, tdmZ,tdmXMM,tdmYMM,tdmZMM,energies);
       break;
   }
-  
+    /* print the total dipole moment
+     */
+    double *tdmarray,tdmcol_real[3],tdmcol_imag[3];
+    snew(tdmarray,3*nmol);
+    for(k=0;k<DIM;k++){
+        tdmarray[m*DIM+k]=tdm[k];
+    }
+    if(MULTISIM(cr)){
+        /* communicate the dipoles */
+        gmx_sumd_sim(nmol*3,tdmarray,cr->ms);
+    }
+    if(m==0){
+        FILE *dipout;
+        char *dipolefile;
+        snew(dipolefile,3000);
+        sprintf(dipolefile,"%s/dipole.dat",qm->work_dir);
+        dipout=fopen(dipolefile);
+        
+        for(i=0;i<ndim;i++){
+            tdmcol_real[0]=tdmcol_real[1]=tdmcol_real[2]=0;
+            tdmcol_imag[0]=tdmcol_imag[1]=tdmcol_imag[2]=0;
+            for(j=0;j<nmol;j++){
+                for(k=0;k<DIM;k++){
+                    tdmcol_real[k] += creal(qm->eigvec[i*ndim+j])*tdmarray[DIM*j+k];
+                    tdmcol_imag[k] += cimag(qm->eigvec[i*ndim+j])*tdmarray[DIM*j+k];
+                }
+            }
+            fprintf(dipout,"Step %d state %d total |TDM|^2: %12.8lf\n",step, i,
+                    tmdcol_real[0]*tmdcol_real[0]+tmdcol_imag[0]*tmdcol_imag[0],
+                    tmdcol_real[1]*tmdcol_real[1]+tmdcol_imag[1]*tmdcol_imag[1],
+                    tmdcol_real[2]*tmdcol_real[2]+tmdcol_imag[2]*tmdcol_imag[2]);
+        }
+        fclose(dipout);
+        free (dipolefile);
+    }
+    free(tdmarray)
+    
   /* store the Hamiltonian for the next step in QMrec */
   for(i=0;i<ndim*ndim;i++){
     qm->matrix[i]=matrix[i];
